@@ -41,14 +41,14 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
     try {
       // Upload additional images if any
       let additionalImageUrls: string[] = [];
-      
+
       if (additionalFiles.length > 0) {
         toast.info("Uploading additional images...");
-        
+
         for (const file of additionalFiles) {
           const fileExt = file.name.split('.').pop();
           const fileName = `${claimNumber}-additional-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-          
+
           const { error: uploadError } = await supabase.storage
             .from('claim-files')
             .upload(fileName, file);
@@ -82,7 +82,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
 
       // Call finalize-assessment edge function
       toast.info("Generating final assessment...");
-      
+
       const { data, error } = await supabase.functions.invoke('finalize-assessment', {
         body: {
           claimData,
@@ -108,7 +108,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
 
       setFinalAssessment(data.assessment);
       setShowFinalAssessment(true);
-      
+
       toast.success("Final assessment complete!");
     } catch (error) {
       console.error('Error submitting follow-up:', error);
@@ -119,7 +119,13 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
   };
 
   const allRequiredAnswered = assessment.follow_up_questions
-    ?.every((q: any, idx: number) => !q.is_required || (answers[idx] && answers[idx].trim().length > 0));
+    ?.every((q: any, idx: number) => {
+      if (!q.is_required) return true;
+      if (q.question_type === 'additional_images') {
+        return additionalFiles.length > 0;
+      }
+      return answers[idx] && answers[idx].trim().length > 0;
+    });
 
   const displayAssessment = showFinalAssessment ? finalAssessment : assessment;
   const severityLevel = displayAssessment.severity_level || displayAssessment.initial_severity;
@@ -172,7 +178,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
                       ))}
                     </div>
                   </div>
-                  
+
                   <div>
                     <h4 className="font-medium text-sm mb-2">Affected Areas</h4>
                     <div className="flex flex-wrap gap-2">
