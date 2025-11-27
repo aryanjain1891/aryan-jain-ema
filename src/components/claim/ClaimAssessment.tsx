@@ -119,8 +119,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
   };
 
   const allRequiredAnswered = assessment.follow_up_questions
-    ?.filter((q: any) => q.is_required)
-    .every((_: any, idx: number) => answers[idx]?.trim());
+    ?.every((q: any, idx: number) => !q.is_required || (answers[idx] && answers[idx].trim().length > 0));
 
   const displayAssessment = showFinalAssessment ? finalAssessment : assessment;
   const severityLevel = displayAssessment.severity_level || displayAssessment.initial_severity;
