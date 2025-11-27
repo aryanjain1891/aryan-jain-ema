@@ -1,9 +1,7 @@
 import { ClaimIntakeForm } from "@/components/claim/ClaimIntakeForm";
 import { Shield, FileText, Brain } from "lucide-react";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -12,8 +10,8 @@ const Index = () => {
               <Shield className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Intelligent FNOL Gatekeeper</h1>
-              <p className="text-sm text-muted-foreground">AI-Powered Auto Claims Intake & Triage</p>
+              <h1 className="text-xl font-bold text-foreground">EmaVe</h1>
+              
             </div>
           </div>
         </div>
@@ -81,8 +79,6 @@ const Index = () => {
           <p>© 2024 Intelligent FNOL System. Built with advanced AI for instant auto claims processing.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
