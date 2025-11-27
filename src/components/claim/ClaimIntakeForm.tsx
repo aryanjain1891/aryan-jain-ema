@@ -4,19 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ClaimAssessment } from "./ClaimAssessment";
 
-interface ClaimIntakeFormProps {
-  onClaimCreated: (claimId: string) => void;
-}
-
-export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
+export const ClaimIntakeForm = () => {
   const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [policyStatus, setPolicyStatus] = useState<'active' | 'lapsed' | 'invalid' | null>(null);
+  const [assessment, setAssessment] = useState<any>(null);
+  const [claimNumber, setClaimNumber] = useState<string>("");
+  const [claimId, setClaimId] = useState<string>("");
   
   const [formData, setFormData] = useState({
     policy_number: "",
@@ -102,6 +103,15 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
       return;
     }
 
+    if (files.length === 0) {
+      toast({
+        title: "Photos Required",
+        description: "Please upload at least one photo of the vehicle damage for AI assessment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -151,7 +161,12 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
         if (filesError) throw filesError;
       }
 
-      // Trigger AI assessment
+      // Trigger initial AI assessment
+      toast({
+        title: "Analyzing Damage",
+        description: "Our AI is analyzing the vehicle damage photos...",
+      });
+
       const { data: assessmentData, error: assessmentError } = await supabase.functions.invoke('assess-claim', {
         body: {
           claimData: {
@@ -163,17 +178,15 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
       });
 
       if (assessmentError) {
-        console.error('Assessment error:', assessmentError);
+        throw assessmentError;
       }
 
-      // Update claim with assessment
+      // Update claim with initial assessment
       if (assessmentData?.assessment) {
         await supabase
           .from('claims')
           .update({
-            severity_level: assessmentData.assessment.severity_level,
-            confidence_score: assessmentData.assessment.confidence_score,
-            routing_decision: assessmentData.assessment.routing_decision,
+            severity_level: assessmentData.assessment.initial_severity,
             ai_assessment: assessmentData.assessment,
           })
           .eq('id', claim.id);
@@ -192,11 +205,13 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
       }
 
       toast({
-        title: "Claim Submitted",
-        description: `Claim ${claim.claim_number} has been successfully created.`,
+        title: "Initial Assessment Complete",
+        description: "Please answer follow-up questions to complete your claim.",
       });
 
-      onClaimCreated(claim.id);
+      setAssessment(assessmentData.assessment);
+      setClaimNumber(claim.claim_number);
+      setClaimId(claim.id);
     } catch (error) {
       console.error('Submission error:', error);
       toast({
@@ -209,12 +224,39 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
     }
   };
 
+  const handleReset = () => {
+    setAssessment(null);
+    setClaimNumber("");
+    setClaimId("");
+    setFormData({
+      policy_number: "",
+      incident_type: "",
+      incident_date: "",
+      description: "",
+      location: "",
+    });
+    setFiles([]);
+    setPolicyStatus(null);
+  };
+
+  if (assessment) {
+    return (
+      <ClaimAssessment 
+        assessment={assessment}
+        claimNumber={claimNumber}
+        claimId={claimId}
+        claimData={formData}
+        onReset={handleReset}
+      />
+    );
+  }
+
   return (
     <Card className="border-2">
       <CardHeader>
-        <CardTitle>File a New Claim</CardTitle>
+        <CardTitle>File a New Auto Insurance Claim</CardTitle>
         <CardDescription>
-          Provide your policy information and incident details. Our AI will assess and route your claim automatically.
+          Provide your policy information and vehicle damage photos. Our AI will analyze the damage and guide you through the claims process.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -252,7 +294,7 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
               </Button>
             </div>
             {policyStatus === 'active' && (
-              <p className="text-sm text-success">✓ Policy is active and eligible for claims</p>
+              <p className="text-sm text-emerald-600">✓ Policy is active and eligible for claims</p>
             )}
             {policyStatus === 'lapsed' && (
               <p className="text-sm text-destructive">This policy has lapsed. Please renew before filing a claim.</p>
@@ -261,14 +303,26 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
 
           {/* Incident Details */}
           <div className="space-y-2">
-            <Label htmlFor="incident_type">Incident Type *</Label>
-            <Input
-              id="incident_type"
-              placeholder="e.g., Auto Accident, Water Damage, Theft"
+            <Label htmlFor="incident_type">Auto Incident Type *</Label>
+            <Select
               value={formData.incident_type}
-              onChange={(e) => setFormData({ ...formData, incident_type: e.target.value })}
+              onValueChange={(value) => setFormData({ ...formData, incident_type: value })}
               required
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select auto incident type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="collision">Collision</SelectItem>
+                <SelectItem value="hit_and_run">Hit and Run</SelectItem>
+                <SelectItem value="theft">Vehicle Theft</SelectItem>
+                <SelectItem value="vandalism">Vandalism</SelectItem>
+                <SelectItem value="weather">Weather/Hail Damage</SelectItem>
+                <SelectItem value="glass">Glass Damage</SelectItem>
+                <SelectItem value="animal">Animal Collision</SelectItem>
+                <SelectItem value="fire">Fire</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -296,7 +350,7 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
             <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
-              placeholder="Describe what happened in detail..."
+              placeholder="Describe the auto incident (what happened, when, any injuries, other vehicles involved, etc.)..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
@@ -306,12 +360,12 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
 
           {/* File Upload */}
           <div className="space-y-2">
-            <Label>Upload Photos/Documents</Label>
+            <Label>Upload Vehicle Damage Photos (Required for AI Assessment) *</Label>
             <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer">
               <input
                 type="file"
                 multiple
-                accept="image/*,.pdf"
+                accept="image/*"
                 onChange={handleFileChange}
                 className="hidden"
                 id="file-upload"
@@ -319,10 +373,10 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
               <label htmlFor="file-upload" className="cursor-pointer">
                 <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  Click to upload or drag and drop
+                  Click to upload vehicle damage photos
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Photos of damage, police reports, etc.
+                  Required: Photos of all visible damage for AI analysis
                 </p>
               </label>
             </div>
@@ -348,13 +402,13 @@ export const ClaimIntakeForm = ({ onClaimCreated }: ClaimIntakeFormProps) => {
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || policyStatus !== 'active'}
+            disabled={isSubmitting || policyStatus !== 'active' || files.length === 0}
             size="lg"
           >
             {isSubmitting ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Claim...</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing Damage...</>
             ) : (
-              'Submit Claim'
+              'Submit for AI Assessment'
             )}
           </Button>
         </form>
