@@ -16,13 +16,23 @@ serve(async (req) => {
 
     // Mock policy validation - In production, this would integrate with Policy Admin System (PAS)
     // For MVP, we'll simulate validation with pattern matching
-    
+
     const isValidFormat = /^POL-\d{6,8}$/.test(policyNumber);
-    
-    // Simulate random status for demo (in production, query actual PAS)
-    const statuses = ['active', 'lapsed', 'pending'];
-    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    
+
+    // Deterministic validation for demo/testing
+    let status = 'active';
+    if (policyNumber === 'POL-123456') {
+      status = 'active';
+    } else if (policyNumber === 'POL-000000') {
+      status = 'lapsed';
+    } else {
+      // Simulate random status for other numbers
+      const statuses = ['active', 'lapsed', 'pending'];
+      status = statuses[Math.floor(Math.random() * statuses.length)];
+    }
+
+    const randomStatus = status;
+
     // Mock policy details
     const policyDetails = isValidFormat ? {
       policy_number: policyNumber,
@@ -46,7 +56,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in validate-policy function:', error);
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       valid: false
     }), {
