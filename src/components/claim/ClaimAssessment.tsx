@@ -244,7 +244,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
               <div className="space-y-2 pt-4 border-t">
                 <Label htmlFor="additional-files" className="flex items-center gap-2">
                   <Upload className="h-4 w-4" />
-                  Upload Additional Photos (Optional)
+                  Upload Additional Photos <span className="text-destructive ml-1">*</span>
                 </Label>
                 <Input
                   id="additional-files"
@@ -263,7 +263,7 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
 
               <Button
                 onClick={handleSubmitFollowUp}
-                disabled={!allRequiredAnswered || isSubmitting}
+                disabled={!allRequiredAnswered || isSubmitting || additionalFiles.length === 0}
                 className="w-full"
                 size="lg"
               >
