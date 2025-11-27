@@ -18,15 +18,15 @@ export const ClaimIntakeForm = () => {
   const [assessment, setAssessment] = useState<any>(null);
   const [claimNumber, setClaimNumber] = useState<string>("");
   const [claimId, setClaimId] = useState<string>("");
-
+  
   const [formData, setFormData] = useState({
     policy_number: "",
     incident_type: "",
     incident_date: "",
-    description: "I was driving on Highway 101 near exit 15 when another vehicle suddenly changed lanes without signaling and collided with the front right side of my vehicle. The impact caused significant damage to the front bumper, right headlight, and right fender. Both vehicles pulled over to the shoulder safely. The other driver admitted fault and we exchanged insurance information. No injuries were reported, but my vehicle is not drivable due to the damage.",
+    description: "",
     location: "",
   });
-
+  
   const [files, setFiles] = useState<File[]>([]);
 
   const validatePolicy = async () => {
@@ -128,7 +128,7 @@ export const ClaimIntakeForm = () => {
         const { data: { publicUrl } } = supabase.storage
           .from('claim-files')
           .getPublicUrl(fileName);
-
+        
         fileUrls.push(publicUrl);
       }
 
@@ -241,7 +241,7 @@ export const ClaimIntakeForm = () => {
 
   if (assessment) {
     return (
-      <ClaimAssessment
+      <ClaimAssessment 
         assessment={assessment}
         claimNumber={claimNumber}
         claimId={claimId}
@@ -298,9 +298,6 @@ export const ClaimIntakeForm = () => {
             )}
             {policyStatus === 'lapsed' && (
               <p className="text-sm text-destructive">This policy has lapsed. Please renew before filing a claim.</p>
-            )}
-            {!policyStatus && (
-              <p className="text-xs text-muted-foreground mt-1">Tip: Use <code className="bg-muted px-1 rounded">POL-123456</code> for testing.</p>
             )}
           </div>
 
