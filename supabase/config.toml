@@ -1,0 +1,7 @@
+project_id = "ptntgbfriafvhbqupiuk"
+
+[functions.assess-claim]
+verify_jwt = false
+
+[functions.validate-policy]
+verify_jwt = false
