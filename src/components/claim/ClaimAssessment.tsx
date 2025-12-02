@@ -135,6 +135,8 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
     medium: { color: "bg-amber-500", icon: Clock, label: "Moderate Risk" },
     high: { color: "bg-orange-500", icon: AlertCircle, label: "High Risk" },
     critical: { color: "bg-red-500", icon: AlertCircle, label: "Critical" },
+    fraudulent: { color: "bg-red-600", icon: AlertCircle, label: "Fraud Suspected" },
+    invalid_images: { color: "bg-red-600", icon: AlertCircle, label: "Invalid Images" },
   };
 
   const config = severityConfig[severityLevel as keyof typeof severityConfig] || severityConfig.medium;
@@ -151,7 +153,11 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
           <Card className="border-border/50 bg-gradient-to-br from-card to-card/80">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <config.icon className="h-5 w-5" />
+                {assessment.initial_severity === 'invalid_images' ? (
+                  <AlertCircle className="h-5 w-5 text-destructive" />
+                ) : (
+                  <config.icon className="h-5 w-5" />
+                )}
                 Initial Damage Analysis
               </CardTitle>
               <CardDescription>
@@ -159,6 +165,25 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Image Authenticity Warning */}
+              {assessment.image_authenticity && !assessment.image_authenticity.appears_authentic && (
+                <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-destructive">Image Authenticity Concerns</h4>
+                      <p className="text-sm">{assessment.image_authenticity.validation_notes}</p>
+                      {assessment.image_authenticity.concerns?.length > 0 && (
+                        <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                          {assessment.image_authenticity.concerns.map((concern: string, idx: number) => (
+                            <li key={idx}>{concern}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Badge className={`${config.color} text-white`}>
                   {config.label}
@@ -276,7 +301,11 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
         <Card className="border-border/50 bg-gradient-to-br from-card to-card/80">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <config.icon className="h-5 w-5" />
+              {displayAssessment.severity_level === 'fraudulent' || displayAssessment.routing_decision === 'fraud_investigation' ? (
+                <AlertCircle className="h-5 w-5 text-destructive" />
+              ) : (
+                <config.icon className="h-5 w-5" />
+              )}
               Final Assessment Complete
             </CardTitle>
             <CardDescription>
@@ -284,6 +313,36 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Fraud Indicators */}
+            {displayAssessment.fraud_indicators?.has_red_flags && (
+              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-destructive">Fraud Indicators Detected</h4>
+                    <p className="text-sm">Status: <strong>{displayAssessment.fraud_indicators.verification_status}</strong></p>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {displayAssessment.fraud_indicators.concerns?.map((concern: string, idx: number) => (
+                        <li key={idx}>{concern}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Vehicle Validation Issues */}
+            {displayAssessment.vehicle_validation && !displayAssessment.vehicle_validation.details_consistent && (
+              <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-lg space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-destructive">Vehicle Validation Issues</h4>
+                    <p className="text-sm">{displayAssessment.vehicle_validation.notes}</p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge className={`${config.color} text-white`}>
@@ -363,9 +422,15 @@ export const ClaimAssessment = ({ assessment, claimNumber, claimId, claimData, o
             )}
 
             {displayAssessment.routing_decision && (
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
+              <div className={`p-4 rounded-lg border ${
+                displayAssessment.routing_decision === 'fraud_investigation' 
+                  ? 'bg-destructive/5 border-destructive/20' 
+                  : 'bg-primary/5 border-primary/10'
+              }`}>
                 <h4 className="font-medium mb-2">Routing Decision</h4>
-                <Badge className="mb-2" variant="default">
+                <Badge className="mb-2" variant={
+                  displayAssessment.routing_decision === 'fraud_investigation' ? 'destructive' : 'default'
+                }>
                   {displayAssessment.routing_decision.replace('_', ' ').toUpperCase()}
                 </Badge>
                 <p className="text-sm text-muted-foreground mt-2">

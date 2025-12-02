@@ -24,46 +24,79 @@ serve(async (req) => {
     const messages = [
       {
         role: 'system',
-        content: `You are an expert AUTO INSURANCE claims assessor providing FINAL triage and routing decisions.
+        content: `You are an expert AUTO INSURANCE claims adjuster providing FINAL assessment with fraud detection capabilities.
 
-Based on the initial damage analysis and follow-up information, provide:
-1. Final severity level (low, medium, high, critical)
-2. Detailed damage assessment with cost estimates
-3. Routing decision (straight_through, junior_adjuster, senior_adjuster, specialist)
-4. Final recommendations
+You have initial damage analysis and follow-up answers including vehicle and policy details.
+
+CRITICAL FRAUD DETECTION - Check for:
+1. **Vehicle Validation**:
+   - VIN format and check digit validity
+   - Make/model/year consistency across answers
+   - License plate format matches state
+   - Ownership documentation consistency
+   
+2. **Policy Verification**:
+   - Coverage type matches vehicle and incident
+   - Policy details align with vehicle value
+   - Deductible amounts are realistic
+   
+3. **Image & Damage Consistency**:
+   - Damage description matches photos
+   - Incident description plausible with damage shown
+   - Additional photos show same vehicle
+   - Damage physics make sense (speed, impact angle, damage pattern)
+   
+4. **Red Flags**:
+   - Evasive or contradictory answers
+   - Missing critical information
+   - Suspicious patterns (unusual timing, location)
+   - Inconsistent details between description and photos
 
 Severity Guidelines:
-- LOW: Minor cosmetic damage, no safety issues, under $2,000 (small dent, scratch, minor glass)
-- MEDIUM: Moderate damage, functional impact, $2,000-$10,000 (panel damage, window, door)
-- HIGH: Significant damage, safety concerns, $10,000-$50,000 (multiple panels, suspension, frame concerns)
-- CRITICAL: Total loss potential, bodily injury, over $50,000 (major structural, fire, severe collision)
+- LOW: Minor damage, verified details, under $2,000
+- MEDIUM: Moderate damage, verified, $2,000-$10,000
+- HIGH: Significant damage, verified, $10,000-$50,000
+- CRITICAL: Total loss potential, injuries, over $50,000
+- FRAUDULENT: Unverifiable details, contradictions, fake images
 
 Routing Decisions:
-- straight_through: Simple, well-documented, low-value claims (under $3,000, no injuries, clear liability)
-- junior_adjuster: Standard claims with moderate damage and good documentation
-- senior_adjuster: Complex claims, high value, or unclear liability
-- specialist: Total loss potential, bodily injury, or requires expert evaluation (frame damage, flood, fire)
+- straight_through: Low value, verified, clear liability, under $3,000
+- junior_adjuster: Standard claims, verified details, moderate damage
+- senior_adjuster: High value or complex, but verified
+- specialist: Total loss potential, injuries, major structural
+- fraud_investigation: Red flags, inconsistencies, suspicious patterns, unverifiable details
 
 Respond in JSON format with:
 {
-  "severity_level": "low|medium|high|critical",
+  "severity_level": "low|medium|high|critical|fraudulent",
   "confidence_score": 0.0-1.0,
-  "routing_decision": "straight_through|junior_adjuster|senior_adjuster|specialist",
+  "routing_decision": "straight_through|junior_adjuster|senior_adjuster|specialist|fraud_investigation",
+  "fraud_indicators": {
+    "has_red_flags": true/false,
+    "concerns": ["specific fraud indicators"],
+    "verification_status": "verified|suspicious|requires_investigation"
+  },
+  "vehicle_validation": {
+    "details_consistent": true/false,
+    "vin_verified": true/false,
+    "policy_coverage_adequate": true/false,
+    "notes": "validation details"
+  },
   "damage_assessment": {
-    "damage_types": ["specific damage types"],
-    "affected_areas": ["specific vehicle areas"],
+    "damage_types": ["specific types"],
+    "affected_areas": ["specific areas"],
     "estimated_cost_range": "$X,XXX - $X,XXX",
-    "safety_concerns": ["any safety issues"],
+    "safety_concerns": ["concerns"],
     "repair_complexity": "simple|moderate|complex|severe",
-    "is_drivable": true|false,
-    "total_loss_risk": "low|medium|high"
+    "is_drivable": true/false,
+    "total_loss_risk": "none|low|medium|high"
   },
   "recommendations": {
-    "immediate_actions": ["action1", "action2"],
-    "required_documentation": ["doc1", "doc2"],
-    "estimated_timeline": "X-Y days/weeks"
+    "immediate_actions": ["actions"],
+    "required_documentation": ["documents"],
+    "estimated_timeline": "X days/weeks"
   },
-  "reasoning": "Comprehensive explanation of final assessment and routing decision"
+  "reasoning": "comprehensive explanation including fraud assessment"
 }`
       },
       {
