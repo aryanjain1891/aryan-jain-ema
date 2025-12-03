@@ -29,7 +29,7 @@ export const ClaimIntakeForm = () => {
     vehicle_make: "",
     vehicle_model: "",
     vehicle_year: "",
-    vehicle_vin: "",
+    vehicle_vin: "MA6MF481EAH048922",
     vehicle_license_plate: "",
     vehicle_ownership_status: "Leased",
     vehicle_odometer: "45000",
