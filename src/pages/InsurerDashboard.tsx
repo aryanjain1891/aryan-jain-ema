@@ -345,190 +345,114 @@ export default function InsurerDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5" />
-                      Final AI Assessment Results
+                      AI Assessment Results
                     </CardTitle>
                     <CardDescription>
-                      Confidence Score: {selectedClaim.confidence_score ? `${Math.round(selectedClaim.confidence_score * 100)}%` : 'Pending final assessment'}
+                      Confidence Score: {selectedClaim.confidence_score ? `${Math.round(selectedClaim.confidence_score * 100)}%` : 'N/A'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {!selectedClaim.routing_decision ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Final assessment pending - awaiting follow-up question responses</p>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Routing Decision */}
-                        <div className="p-4 rounded-lg border bg-card">
-                          <h4 className="font-semibold mb-2">Routing Decision</h4>
-                          <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
-                          <div className="mt-2 grid grid-cols-2 gap-4">
+                    {/* Routing Decision */}
+                    <div className="p-4 rounded-lg border bg-card">
+                      <h4 className="font-semibold mb-2">Routing Decision</h4>
+                      <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
+                      {assessment?.reasoning && (
+                        <p className="text-sm mt-3 text-muted-foreground">{assessment.reasoning}</p>
+                      )}
+                    </div>
+
+                    {/* Damage Assessment */}
+                    {assessment?.damage_assessment && (
+                      <div className="space-y-4">
+                        <h4 className="font-semibold">Damage Assessment</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {assessment.damage_assessment.damage_types?.length > 0 && (
                             <div>
-                              <p className="text-sm text-muted-foreground">Severity Level</p>
-                              <Badge className={`${severity.color} text-white mt-1`}>{severity.label}</Badge>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">Confidence</p>
-                              <p className="font-semibold">{selectedClaim.confidence_score ? `${Math.round(selectedClaim.confidence_score * 100)}%` : 'N/A'}</p>
-                            </div>
-                          </div>
-                          {assessment?.reasoning && (
-                            <div className="mt-4">
-                              <p className="text-sm text-muted-foreground mb-1">AI Reasoning</p>
-                              <p className="text-sm bg-muted/50 p-3 rounded-lg">{assessment.reasoning}</p>
+                              <p className="text-sm text-muted-foreground mb-2">Damage Types</p>
+                              <div className="flex flex-wrap gap-1">
+                                {assessment.damage_assessment.damage_types.map((t: string, i: number) => (
+                                  <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
+                                ))}
+                              </div>
                             </div>
                           )}
+                          {assessment.damage_assessment.affected_areas?.length > 0 && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-2">Affected Areas</p>
+                              <div className="flex flex-wrap gap-1">
+                                {assessment.damage_assessment.affected_areas.map((a: string, i: number) => (
+                                  <Badge key={i} variant="secondary" className="text-xs">{a}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-muted-foreground">Estimated Cost</p>
+                            <p className="font-semibold text-primary">{assessment.damage_assessment.estimated_cost_range || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Repair Complexity</p>
+                            <Badge variant="outline">{assessment.damage_assessment.repair_complexity || 'N/A'}</Badge>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Drivable</p>
+                            <Badge variant={assessment.damage_assessment.is_drivable ? 'default' : 'destructive'}>
+                              {assessment.damage_assessment.is_drivable ? 'Yes' : 'No'}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Total Loss Risk</p>
+                            <Badge variant="outline">{assessment.damage_assessment.total_loss_risk || 'N/A'}</Badge>
+                          </div>
                         </div>
 
-                        {/* Vehicle Validation */}
-                        {assessment?.vehicle_validation && (
-                          <div className="p-4 rounded-lg border bg-card">
-                            <h4 className="font-semibold mb-3">Vehicle Validation</h4>
-                            <div className="grid grid-cols-3 gap-4 mb-3">
-                              <div className="flex items-center gap-2">
-                                {assessment.vehicle_validation.details_consistent ? 
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" /> : 
-                                  <AlertCircle className="h-4 w-4 text-destructive" />}
-                                <span className="text-sm">Details Consistent</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {assessment.vehicle_validation.vin_verified ? 
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" /> : 
-                                  <AlertCircle className="h-4 w-4 text-amber-500" />}
-                                <span className="text-sm">VIN Verified</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {assessment.vehicle_validation.policy_coverage_adequate ? 
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" /> : 
-                                  <AlertCircle className="h-4 w-4 text-amber-500" />}
-                                <span className="text-sm">Coverage Adequate</span>
-                              </div>
-                            </div>
-                            {assessment.vehicle_validation.notes && (
-                              <p className="text-sm text-muted-foreground">{assessment.vehicle_validation.notes}</p>
-                            )}
+                        {assessment.damage_assessment.safety_concerns?.length > 0 && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">Safety Concerns</p>
+                            <ul className="list-disc list-inside text-sm space-y-1">
+                              {assessment.damage_assessment.safety_concerns.map((c: string, i: number) => (
+                                <li key={i} className="text-destructive">{c}</li>
+                              ))}
+                            </ul>
                           </div>
                         )}
+                      </div>
+                    )}
 
-                        {/* Image Consistency */}
-                        {assessment?.image_consistency && (
-                          <div className="p-4 rounded-lg border bg-card">
-                            <h4 className="font-semibold mb-3">Image Consistency Check</h4>
-                            <div className="grid grid-cols-2 gap-4 mb-3">
-                              <div className="flex items-center gap-2">
-                                {assessment.image_consistency.all_images_same_vehicle ? 
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" /> : 
-                                  <AlertCircle className="h-4 w-4 text-destructive" />}
-                                <span className="text-sm">All Images Same Vehicle</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                {assessment.image_consistency.vehicle_matches_claimed_details ? 
-                                  <CheckCircle className="h-4 w-4 text-emerald-500" /> : 
-                                  <AlertCircle className="h-4 w-4 text-destructive" />}
-                                <span className="text-sm">Matches Claimed Details</span>
-                              </div>
-                            </div>
-                            {assessment.image_consistency.concerns?.length > 0 && (
-                              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                                {assessment.image_consistency.concerns.map((c: string, i: number) => (
-                                  <li key={i}>{c}</li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
-                        )}
+                    {/* Visible Damage Analysis */}
+                    {assessment?.visible_damage_analysis && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold">Initial Visual Analysis</h4>
+                        <p className="text-sm bg-muted/50 p-3 rounded-lg">
+                          {assessment.visible_damage_analysis.preliminary_notes}
+                        </p>
+                      </div>
+                    )}
 
-                        {/* Damage Assessment */}
-                        {assessment?.damage_assessment && (
-                          <div className="space-y-4">
-                            <h4 className="font-semibold">Damage Assessment</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                              {assessment.damage_assessment.damage_types?.length > 0 && (
-                                <div>
-                                  <p className="text-sm text-muted-foreground mb-2">Damage Types</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {assessment.damage_assessment.damage_types.map((t: string, i: number) => (
-                                      <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              {assessment.damage_assessment.affected_areas?.length > 0 && (
-                                <div>
-                                  <p className="text-sm text-muted-foreground mb-2">Affected Areas</p>
-                                  <div className="flex flex-wrap gap-1">
-                                    {assessment.damage_assessment.affected_areas.map((a: string, i: number) => (
-                                      <Badge key={i} variant="secondary" className="text-xs">{a}</Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-sm text-muted-foreground">Estimated Cost</p>
-                                <p className="font-semibold text-primary">{assessment.damage_assessment.estimated_cost_range || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Repair Complexity</p>
-                                <Badge variant="outline">{assessment.damage_assessment.repair_complexity || 'N/A'}</Badge>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Drivable</p>
-                                <Badge variant={assessment.damage_assessment.is_drivable ? "secondary" : "destructive"}>
-                                  {assessment.damage_assessment.is_drivable ? 'Yes' : 'No'}
-                                </Badge>
-                              </div>
-                              <div>
-                                <p className="text-sm text-muted-foreground">Total Loss Risk</p>
-                                <Badge variant="outline">{assessment.damage_assessment.total_loss_risk || 'N/A'}</Badge>
-                              </div>
-                            </div>
-                            {assessment.damage_assessment.safety_concerns?.length > 0 && (
-                              <div>
-                                <p className="text-sm text-muted-foreground mb-2">Safety Concerns</p>
-                                <ul className="list-disc list-inside text-sm space-y-1">
-                                  {assessment.damage_assessment.safety_concerns.map((c: string, i: number) => (
-                                    <li key={i}>{c}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
+                    {/* Recommendations */}
+                    {assessment?.recommendations && (
+                      <div className="space-y-3">
+                        <h4 className="font-semibold">Recommendations</h4>
+                        {assessment.recommendations.immediate_actions?.length > 0 && (
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-2">Immediate Actions</p>
+                            <ul className="space-y-1">
+                              {assessment.recommendations.immediate_actions.map((a: string, i: number) => (
+                                <li key={i} className="text-sm flex items-start gap-2">
+                                  <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                  {a}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         )}
-
-                        {/* Recommendations */}
-                        {assessment?.recommendations && (
-                          <div className="p-4 rounded-lg border bg-card">
-                            <h4 className="font-semibold mb-3">Recommendations</h4>
-                            {assessment.recommendations.immediate_actions?.length > 0 && (
-                              <div className="mb-4">
-                                <p className="text-sm text-muted-foreground mb-2">Immediate Actions</p>
-                                <ul className="list-disc list-inside text-sm space-y-1">
-                                  {assessment.recommendations.immediate_actions.map((a: string, i: number) => (
-                                    <li key={i}>{a}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {assessment.recommendations.required_documentation?.length > 0 && (
-                              <div className="mb-4">
-                                <p className="text-sm text-muted-foreground mb-2">Required Documentation</p>
-                                <ul className="list-disc list-inside text-sm space-y-1">
-                                  {assessment.recommendations.required_documentation.map((d: string, i: number) => (
-                                    <li key={i}>{d}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            {assessment.recommendations.estimated_timeline && (
-                              <div>
-                                <p className="text-sm text-muted-foreground">Estimated Timeline</p>
-                                <p className="font-medium">{assessment.recommendations.estimated_timeline}</p>
-                              </div>
-                            )}
+                        {assessment.recommendations.estimated_timeline && (
+                          <div>
+                            <p className="text-sm text-muted-foreground">Estimated Timeline</p>
+                            <p className="text-sm">{assessment.recommendations.estimated_timeline}</p>
                           </div>
                         )}
-                      </>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
