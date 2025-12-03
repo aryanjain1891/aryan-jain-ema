@@ -43,32 +43,19 @@ serve(async (req) => {
       mimeType = 'image/jpeg';
     }
 
-    // Build the message content based on file type
+    // Build the message content - use base64 data URL for all file types
     const userContent: any[] = [
       {
         type: 'text',
         text: 'Please extract vehicle and policy information from this insurance document.'
-      }
-    ];
-
-    // For PDFs, use inline_data with base64
-    if (mimeType === 'application/pdf') {
-      userContent.push({
-        type: 'file',
-        file: {
-          mime_type: mimeType,
-          data: base64Data
-        }
-      });
-    } else {
-      // For images, use inline base64
-      userContent.push({
+      },
+      {
         type: 'image_url',
         image_url: {
           url: `data:${mimeType};base64,${base64Data}`
         }
-      });
-    }
+      }
+    ];
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
