@@ -111,12 +111,21 @@ export type Database = {
           incident_date: string
           incident_type: string
           location: string | null
+          policy_document_url: string | null
           policy_number: string
           policy_status: string | null
           routing_decision: string | null
           severity_level: string | null
           status: string | null
           updated_at: string | null
+          vehicle_license_plate: string | null
+          vehicle_make: string | null
+          vehicle_model: string | null
+          vehicle_odometer: number | null
+          vehicle_ownership_status: string | null
+          vehicle_purchase_date: string | null
+          vehicle_vin: string | null
+          vehicle_year: number | null
         }
         Insert: {
           ai_assessment?: Json | null
@@ -129,12 +138,21 @@ export type Database = {
           incident_date: string
           incident_type: string
           location?: string | null
+          policy_document_url?: string | null
           policy_number: string
           policy_status?: string | null
           routing_decision?: string | null
           severity_level?: string | null
           status?: string | null
           updated_at?: string | null
+          vehicle_license_plate?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_odometer?: number | null
+          vehicle_ownership_status?: string | null
+          vehicle_purchase_date?: string | null
+          vehicle_vin?: string | null
+          vehicle_year?: number | null
         }
         Update: {
           ai_assessment?: Json | null
@@ -147,12 +165,21 @@ export type Database = {
           incident_date?: string
           incident_type?: string
           location?: string | null
+          policy_document_url?: string | null
           policy_number?: string
           policy_status?: string | null
           routing_decision?: string | null
           severity_level?: string | null
           status?: string | null
           updated_at?: string | null
+          vehicle_license_plate?: string | null
+          vehicle_make?: string | null
+          vehicle_model?: string | null
+          vehicle_odometer?: number | null
+          vehicle_ownership_status?: string | null
+          vehicle_purchase_date?: string | null
+          vehicle_vin?: string | null
+          vehicle_year?: number | null
         }
         Relationships: []
       }

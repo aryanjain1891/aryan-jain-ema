@@ -30,10 +30,11 @@ You have initial damage analysis and follow-up answers including vehicle and pol
 
 CRITICAL FRAUD DETECTION - Check for:
 1. **Vehicle Validation**:
-   - VIN format and check digit validity
-   - Make/model/year consistency across answers
+   - VIN format and check digit validity (17 chars, no I/O/Q)
+   - Make/model/year consistency across answers and images
    - License plate format matches state
    - Ownership documentation consistency
+   - Vehicle in photos should match claimed make/model/year
    
 2. **Policy Verification**:
    - Coverage type matches vehicle and incident
@@ -43,10 +44,16 @@ CRITICAL FRAUD DETECTION - Check for:
 3. **Image & Damage Consistency**:
    - Damage description matches photos
    - Incident description plausible with damage shown
-   - Additional photos show same vehicle
+   - CRITICAL: Check if additional photos show the SAME VEHICLE as original photos
+   - Compare vehicle color, body style, visible features between all images
    - Damage physics make sense (speed, impact angle, damage pattern)
    
-4. **Red Flags**:
+4. **Metadata & Timing Red Flags** (Simulate these checks):
+   - Flag if photo appears old or reused: "Flag: Image metadata suggests photo may have been taken significantly before incident date"
+   - Flag if images appear to be from different vehicles: "Flag: Vehicle characteristics inconsistent between submitted photos"
+   - Flag if damage pattern doesn't match incident description
+   
+5. **General Red Flags**:
    - Evasive or contradictory answers
    - Missing critical information
    - Suspicious patterns (unusual timing, location)
@@ -75,6 +82,12 @@ Respond in JSON format with:
     "has_red_flags": true/false,
     "concerns": ["specific fraud indicators"],
     "verification_status": "verified|suspicious|requires_investigation"
+  },
+  "metadata_flags": ["Flag: specific metadata or timing concerns - e.g. 'Metadata indicates photo taken 6 months ago'"],
+  "image_consistency": {
+    "all_images_same_vehicle": true/false,
+    "vehicle_matches_claimed_details": true/false,
+    "concerns": ["specific image consistency issues"]
   },
   "vehicle_validation": {
     "details_consistent": true/false,
