@@ -6,13 +6,16 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper to convert ArrayBuffer to Base64 without stack overflow
+// Helper to convert ArrayBuffer to Base64 in chunks to avoid stack overflow and OOM
 function arrayBufferToBase64(buffer: ArrayBuffer) {
     let binary = '';
     const bytes = new Uint8Array(buffer);
     const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
+    const chunkSize = 32768; // 32KB chunks
+
+    for (let i = 0; i < len; i += chunkSize) {
+        const chunk = bytes.subarray(i, Math.min(i + chunkSize, len));
+        binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
     }
     return btoa(binary);
 }

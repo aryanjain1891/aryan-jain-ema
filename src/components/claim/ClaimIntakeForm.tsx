@@ -114,7 +114,8 @@ export const ClaimIntakeForm = () => {
         description: "Extracting vehicle details from your policy...",
       });
 
-      const fileName = `policy-${Date.now()}-${policyDocument.name}`;
+      const sanitizedName = policyDocument.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `policy-${Date.now()}-${sanitizedName}`;
       const { error: uploadError } = await supabase.storage
         .from('claim-files')
         .upload(fileName, policyDocument);
