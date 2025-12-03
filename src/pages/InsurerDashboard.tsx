@@ -15,8 +15,11 @@ import {
   AlertCircle,
   Eye,
   ArrowLeft,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Zap
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
@@ -58,6 +61,7 @@ export default function InsurerDashboard() {
   const [claimFiles, setClaimFiles] = useState<ClaimFile[]>([]);
   const [claimQuestions, setClaimQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return sessionStorage.getItem("insurer_auth") === "true";
   });
@@ -106,6 +110,101 @@ export default function InsurerDashboard() {
     setSelectedClaim(claim);
     fetchClaimFiles(claim.id);
     fetchClaimQuestions(claim.id);
+  };
+
+  const handleFinalizeAssessment = async (claim: Claim) => {
+    setIsFinalizing(true);
+    try {
+      // Get claim questions with answers
+      const { data: questions } = await supabase
+        .from('claim_questions')
+        .select('*')
+        .eq('claim_id', claim.id);
+
+      // Get claim files for image URLs
+      const { data: files } = await supabase
+        .from('claim_files')
+        .select('*')
+        .eq('claim_id', claim.id);
+
+      const imageUrls = files?.filter(f => f.file_type?.startsWith('image/'))
+        .map(f => f.file_url) || [];
+
+      // Prepare follow-up answers
+      const followUpAnswers = questions?.map(q => ({
+        question: q.question,
+        answer: q.answer || 'Not answered',
+        question_type: q.question_type,
+        is_required: q.is_required
+      })) || [];
+
+      // Prepare claim data
+      const claimData = {
+        incident_type: claim.incident_type,
+        incident_date: claim.incident_date,
+        description: claim.description,
+        location: claim.location,
+        policy_number: claim.policy_number,
+        vehicle_make: claim.vehicle_make,
+        vehicle_model: claim.vehicle_model,
+        vehicle_year: claim.vehicle_year,
+        vehicle_vin: claim.vehicle_vin,
+        vehicle_license_plate: claim.vehicle_license_plate,
+        vehicle_ownership_status: claim.vehicle_ownership_status,
+        vehicle_odometer: claim.vehicle_odometer,
+        vehicle_purchase_date: claim.vehicle_purchase_date,
+      };
+
+      toast.info("Running AI assessment...");
+
+      // Call finalize-assessment
+      const { data, error } = await supabase.functions.invoke('finalize-assessment', {
+        body: {
+          claimData,
+          initialAssessment: claim.ai_assessment || {},
+          followUpAnswers,
+          additionalImageUrls: imageUrls
+        }
+      });
+
+      if (error) throw error;
+
+      // Update claim with final assessment
+      const { error: updateError } = await supabase
+        .from('claims')
+        .update({
+          severity_level: data.assessment.severity_level,
+          confidence_score: data.assessment.confidence_score,
+          routing_decision: data.assessment.routing_decision,
+          ai_assessment: data.assessment,
+          status: 'assessed'
+        })
+        .eq('id', claim.id);
+
+      if (updateError) throw updateError;
+
+      // Refresh data
+      await fetchClaims();
+      await fetchClaimQuestions(claim.id);
+      
+      // Update selected claim with new data
+      const updatedClaim = {
+        ...claim,
+        severity_level: data.assessment.severity_level,
+        confidence_score: data.assessment.confidence_score,
+        routing_decision: data.assessment.routing_decision,
+        ai_assessment: data.assessment,
+        status: 'assessed'
+      };
+      setSelectedClaim(updatedClaim);
+
+      toast.success("Assessment finalized successfully!");
+    } catch (error) {
+      console.error('Error finalizing assessment:', error);
+      toast.error("Failed to finalize assessment. Please try again.");
+    } finally {
+      setIsFinalizing(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -190,21 +289,37 @@ export default function InsurerDashboard() {
                       Submitted on {new Date(selectedClaim.created_at).toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
-                    {(() => {
-                      const legitimacy = getLegitimacyBadge(assessment);
-                      if (legitimacy) {
-                        const Icon = legitimacy.icon;
-                        return (
-                          <Badge className={`${legitimacy.color} text-white flex items-center gap-1`}>
-                            <Icon className="h-3 w-3" />
-                            {legitimacy.label}
-                          </Badge>
-                        );
-                      }
-                    })()}
-                    <Badge className={`${severity.color} text-white`}>{severity.label}</Badge>
-                    <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
+                  <div className="flex items-center gap-3">
+                    {/* Finalize Assessment Button */}
+                    {selectedClaim.status === 'submitted' && (
+                      <Button 
+                        onClick={() => handleFinalizeAssessment(selectedClaim)}
+                        disabled={isFinalizing}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        {isFinalizing ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Analyzing...</>
+                        ) : (
+                          <><Zap className="mr-2 h-4 w-4" /> Finalize Assessment</>
+                        )}
+                      </Button>
+                    )}
+                    <div className="flex gap-2">
+                      {(() => {
+                        const legitimacy = getLegitimacyBadge(assessment);
+                        if (legitimacy) {
+                          const Icon = legitimacy.icon;
+                          return (
+                            <Badge className={`${legitimacy.color} text-white flex items-center gap-1`}>
+                              <Icon className="h-3 w-3" />
+                              {legitimacy.label}
+                            </Badge>
+                          );
+                        }
+                      })()}
+                      <Badge className={`${severity.color} text-white`}>{severity.label}</Badge>
+                      <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
