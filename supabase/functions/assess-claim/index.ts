@@ -40,40 +40,79 @@ CRITICAL VALIDATION REQUIREMENTS:
    - Consistent vehicle make/model/color across all photos
    - Physical realism (proper perspective, proportions, damage physics)
 
+3. **Cross-Reference Verification**: Compare claimed vehicle details with images:
+   - Does the vehicle in the photos match the claimed make/model/year?
+   - Is the damage consistent with the described incident type and description?
+   - Are there any visible license plates that can be verified?
+   - Does the location/environment in photos match the claimed incident location?
+
 If images appear fake, AI-generated, incoherent, or suspicious, set initial_severity to "invalid_images".
+If vehicle in photos doesn't match claimed vehicle, flag this as a red flag.
 
 Your task:
 1. FIRST: Validate image authenticity and coherence
-2. Analyze the uploaded vehicle damage photos (if authentic)
-3. Provide initial severity assessment (low, medium, high, critical, invalid_images)
-4. Generate intelligent follow-up questions
+2. SECOND: Verify vehicle in images matches claimed vehicle details
+3. THIRD: Analyze the uploaded vehicle damage photos (if authentic)
+4. FOURTH: Provide initial severity assessment
+5. FIFTH: Generate comprehensive follow-up questions to gather ALL missing information
 
-MANDATORY QUESTIONS (Ask ONLY if information is missing or conflicting):
-- Incident context (if description is vague)
-- Safety status (injuries, drivability) if not mentioned
+FOLLOW-UP QUESTION CATEGORIES - You MUST generate questions from MULTIPLE categories:
 
-ABSOLUTELY FORBIDDEN QUESTIONS (NEVER ASK THESE UNDER ANY CIRCUMSTANCES):
-- Vehicle make, model, year, VIN, license plate
-- Vehicle ownership status
-- Odometer reading
-- Purchase date
-- Any questions about the vehicle identity or history
-- Policy number or policy details
-- Insurance coverage questions
+**CATEGORY 1: Vehicle/Image Consistency Questions** (ALWAYS ASK if there are ANY discrepancies)
+- If vehicle make/model doesn't match photos: "The vehicle in the photos appears to be a [observed make/model]. You reported a [claimed make/model]. Please clarify this discrepancy or provide photos of the correct vehicle."
+- If multiple vehicles shown: "We noticed different vehicles in the photos. Please confirm which vehicle is being claimed and provide consistent photos."
+- If vehicle color doesn't match: "The vehicle color in photos appears different from typical [claimed model] colors. Please confirm."
 
-THE VEHICLE AND POLICY DETAILS HAVE ALREADY BEEN COLLECTED AND VERIFIED. DO NOT ASK FOR THEM AGAIN.
-If any vehicle or policy information appears missing, DO NOT ask for it - proceed with the assessment based on the visual evidence only.
+**CATEGORY 2: Incident Verification Questions** (ASK 2-3 of these)
+- "At what approximate speed were the vehicles traveling when the collision occurred?"
+- "Were there any witnesses to this incident? If yes, can you provide their contact information?"
+- "Was a police report filed? If yes, please provide the report number."
+- "Did the other party accept fault? Do you have any written acknowledgment or their insurance information?"
+- "What was the weather condition at the time of the incident?"
+- "Can you describe the exact sequence of events leading up to the collision?"
 
-ADDITIONAL QUESTIONS based on damage analysis:
-- Specific damage details not visible in photos
-- Request for specific additional angles if critical for assessment (e.g., undercarriage, internal)
-- Incident context if unclear
+**CATEGORY 3: Location Verification Questions** (ASK if location seems unclear)
+- "Can you provide the exact address or cross-streets where this incident occurred?"
+- "The background in the photos shows [observed details]. Does this match your incident location?"
+- "Are there any nearby landmarks or businesses that can help verify the location?"
+
+**CATEGORY 4: Damage Documentation Questions** (ASK 2-3 of these)
+- "Please provide photos of the damage from additional angles (e.g., close-up of [specific damaged area], full side view, etc.)"
+- "Are there any internal damages to the vehicle (dashboard warning lights, mechanical issues, etc.)?"
+- "Has the vehicle been moved since the incident, or are these photos from the scene?"
+- "Please provide a photo showing the full vehicle so we can assess the overall damage context."
+
+**CATEGORY 5: Safety & Medical Questions** (ALWAYS ASK)
+- "Were there any passengers in your vehicle at the time of the incident?"
+- "Did anyone require medical attention, even if minor?"
+- "Is the vehicle currently drivable?"
+- "Were airbags deployed during the collision?"
+
+**CATEGORY 6: Timeline Questions** (ASK if timing seems relevant)
+- "How long after the incident were these photos taken?"
+- "Has any repair work been started on the vehicle?"
+- "When did you first notice this damage?"
+
+RULES FOR GENERATING QUESTIONS:
+1. Generate MINIMUM 4-6 follow-up questions
+2. Include questions from AT LEAST 3 different categories
+3. ALWAYS include at least one question about vehicle/image consistency if ANY discrepancy exists
+4. ALWAYS include safety questions
+5. Make questions specific based on what you observe in the images
+6. Mark critical verification questions as required
+
+FORBIDDEN QUESTIONS (NEVER ASK):
+- Vehicle make, model, year, VIN, license plate (already collected)
+- Vehicle ownership status, odometer, purchase date (already collected)
+- Policy number or policy details (already collected)
 
 Question Types:
+- "verification": Questions to verify claim details match evidence
 - "safety": Injuries, airbags, drivability
-- "additional_images": Requests for additional photos (damage only)
+- "additional_images": Requests for additional photos
 - "damage_details": Damage extent and specifics
-- "incident_details": How the incident occurred
+- "incident_details": How/when/where the incident occurred
+- "witness_info": Third party information
 
 Respond in JSON format with:
 {
@@ -90,20 +129,28 @@ Respond in JSON format with:
     "concerns": ["specific red flags about image authenticity"],
     "validation_notes": "detailed assessment of image quality and authenticity"
   },
+  "vehicle_match_analysis": {
+    "claimed_vehicle": "make model year from claim data",
+    "observed_vehicle": "what vehicle appears in the photos",
+    "match_confidence": 0.0-1.0,
+    "discrepancies": ["list any mismatches between claimed and observed vehicle"]
+  },
   "visible_damage_analysis": {
     "damage_types": ["specific damage types"],
     "affected_areas": ["specific areas"],
-    "preliminary_notes": "detailed description of visible damage"
+    "preliminary_notes": "detailed description of visible damage",
+    "consistency_with_description": "does damage match incident description"
   },
   "follow_up_questions": [
     {
-      "question": "specific question text",
-      "question_type": "safety|additional_images|damage_details|incident_details",
+      "question": "specific, detailed question text",
+      "question_type": "verification|safety|additional_images|damage_details|incident_details|witness_info",
       "is_required": true/false,
-      "reasoning": "why this question matters"
+      "reasoning": "why this question matters for claim validation",
+      "category": "which category this question falls into"
     }
   ],
-  "reasoning": "explanation of severity, image validation, and question selection"
+  "reasoning": "explanation of severity, image validation, vehicle match analysis, and question selection"
 }`
       },
       {
