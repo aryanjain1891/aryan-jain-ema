@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InsurerLogin } from "@/components/InsurerLogin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,7 +56,11 @@ export default function InsurerDashboard() {
   const [claims, setClaims] = useState<Claim[]>([]);
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const [claimFiles, setClaimFiles] = useState<ClaimFile[]>([]);
+  const [claimQuestions, setClaimQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem("insurer_auth") === "true";
+  });
 
   const fetchClaims = async () => {
     setIsLoading(true);
@@ -85,9 +90,21 @@ export default function InsurerDashboard() {
     }
   };
 
+  const fetchClaimQuestions = async (claimId: string) => {
+    const { data, error } = await supabase
+      .from('claim_questions')
+      .select('*')
+      .eq('claim_id', claimId);
+
+    if (!error && data) {
+      setClaimQuestions(data);
+    }
+  };
+
   const handleViewClaim = (claim: Claim) => {
     setSelectedClaim(claim);
     fetchClaimFiles(claim.id);
+    fetchClaimQuestions(claim.id);
   };
 
   const getStatusColor = (status: string) => {
@@ -138,6 +155,15 @@ export default function InsurerDashboard() {
 
     return { color: 'bg-gray-500', label: 'Verification Pending', icon: Clock };
   };
+
+  const handleLogin = () => {
+    sessionStorage.setItem("insurer_auth", "true");
+    setIsAuthenticated(true);
+  };
+
+  if (!isAuthenticated) {
+    return <InsurerLogin onLogin={handleLogin} />;
+  }
 
   if (selectedClaim) {
     const assessment = selectedClaim.ai_assessment;
