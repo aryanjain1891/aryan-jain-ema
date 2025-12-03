@@ -529,9 +529,9 @@ export default function InsurerDashboard() {
                     ) : (
                       <div className="space-y-4">
                         {claimQuestions.map((q, idx) => {
-                          // Find matching analysis from AI assessment
+                          // Find matching analysis from AI assessment by question text only
                           const qaAnalysis = assessment?.follow_up_analysis?.find(
-                            (a: any) => a.question === q.question || a.answer === q.answer
+                            (a: any) => a.question === q.question
                           );
                           
                           const getCredibilityBadge = (credibility: string) => {
@@ -557,7 +557,7 @@ export default function InsurerDashboard() {
                           return (
                             <div key={q.id} className={`p-4 rounded-lg border space-y-3 ${
                               qaAnalysis?.impact_on_claim === 'critical_concern' 
-                                ? 'border-destructive/50 bg-destructive/5' 
+                                ? 'border-destructive/50 bg-destructive/5'
                                 : qaAnalysis?.credibility === 'suspicious' || qaAnalysis?.credibility === 'evasive'
                                   ? 'border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20'
                                   : 'bg-card'
