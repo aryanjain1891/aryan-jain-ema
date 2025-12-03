@@ -23,17 +23,17 @@ export const ClaimIntakeForm = () => {
     policy_number: "",
     incident_type: "",
     incident_date: "",
-    description: "",
+    description: "I was driving on Highway 101 near exit 15 when another vehicle suddenly changed lanes without signaling and collided with the front right side of my vehicle. The impact caused significant damage to the front bumper, right headlight, and right fender. Both vehicles pulled over to the shoulder safely. The other driver admitted fault and we exchanged insurance information. No injuries were reported, but my vehicle is not drivable due to the damage.",
     location: "",
     // Vehicle details
-    vehicle_make: "",
-    vehicle_model: "",
+    vehicle_make: "Nissan",
+    vehicle_model: "Amtima",
     vehicle_year: "",
-    vehicle_vin: "",
-    vehicle_license_plate: "",
-    vehicle_ownership_status: "",
-    vehicle_odometer: "",
-    vehicle_purchase_date: "",
+    vehicle_vin: "MA6MF481EAH048922",
+    vehicle_license_plate: "DL04CAD8812",
+    vehicle_ownership_status: "Leased",
+    vehicle_odometer: "45000",
+    vehicle_purchase_date: "2023-10-23",
   });
 
   const [damageFiles, setDamageFiles] = useState<File[]>([]);
