@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -36,9 +37,9 @@ serve(async (req) => {
             throw new Error(`Failed to download file: ${downloadError.message}`);
         }
 
-        // Convert to base64
+        // Convert to base64 safely
         const arrayBuffer = await fileData.arrayBuffer();
-        const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        const base64Data = encode(new Uint8Array(arrayBuffer));
         const mimeType = fileData.type;
 
         // Prepare content for AI extraction
@@ -105,7 +106,7 @@ serve(async (req) => {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('AI API error:', response.status, errorText);
-            throw new Error(`AI API error: ${response.status}`);
+            throw new Error(`AI API error: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
