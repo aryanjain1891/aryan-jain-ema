@@ -38,6 +38,7 @@ export const ClaimIntakeForm = () => {
 
   const [damageFiles, setDamageFiles] = useState<File[]>([]);
   const [policyDocument, setPolicyDocument] = useState<File | null>(null);
+  const [isExtractingFromPolicy, setIsExtractingFromPolicy] = useState(false);
 
   const validatePolicy = async () => {
     if (!formData.policy_number) {
@@ -100,6 +101,67 @@ export const ClaimIntakeForm = () => {
   const handlePolicyDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setPolicyDocument(e.target.files[0]);
+    }
+  };
+
+  const extractFromPolicyDocument = async () => {
+    if (!policyDocument) {
+      toast({
+        title: "No Document",
+        description: "Please upload a policy document first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExtractingFromPolicy(true);
+    try {
+      // Upload document temporarily
+      const fileName = `temp-policy-${Date.now()}-${policyDocument.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('claim-files')
+        .upload(fileName, policyDocument);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('claim-files')
+        .getPublicUrl(fileName);
+
+      // Call AI to extract vehicle details
+      const { data, error } = await supabase.functions.invoke('parse-policy-document', {
+        body: { documentUrl: publicUrl }
+      });
+
+      if (error) throw error;
+
+      if (data?.data) {
+        const extracted = data.data;
+        setFormData(prev => ({
+          ...prev,
+          policy_number: extracted.policy_number || prev.policy_number,
+          vehicle_make: extracted.vehicle_make || prev.vehicle_make,
+          vehicle_model: extracted.vehicle_model || prev.vehicle_model,
+          vehicle_year: extracted.vehicle_year?.toString() || prev.vehicle_year,
+          vehicle_vin: extracted.vehicle_vin || prev.vehicle_vin,
+          vehicle_license_plate: extracted.vehicle_license_plate || prev.vehicle_license_plate,
+          vehicle_ownership_status: extracted.vehicle_ownership_status || prev.vehicle_ownership_status,
+        }));
+
+        toast({
+          title: "Details Extracted",
+          description: `Successfully extracted vehicle details from policy document (${Math.round(extracted.extraction_confidence * 100)}% confidence).`,
+        });
+      }
+    } catch (error) {
+      console.error('Extraction error:', error);
+      toast({
+        title: "Extraction Failed",
+        description: "Could not extract details from document. Please enter manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExtractingFromPolicy(false);
     }
   };
 
@@ -395,6 +457,22 @@ export const ClaimIntakeForm = () => {
                   </div>
                 </label>
               </div>
+              {policyDocument && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={extractFromPolicyDocument}
+                  disabled={isExtractingFromPolicy}
+                  className="mt-2"
+                >
+                  {isExtractingFromPolicy ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Extracting Details...</>
+                  ) : (
+                    "Auto-fill Vehicle Details from Document"
+                  )}
+                </Button>
+              )}
             </div>
           </div>
 

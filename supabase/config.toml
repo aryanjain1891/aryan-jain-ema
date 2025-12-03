@@ -1,5 +1,8 @@
 project_id = "ptntgbfriafvhbqupiuk"
 
+[functions.parse-policy-document]
+verify_jwt = false
+
 [functions.assess-claim]
 verify_jwt = false
 
