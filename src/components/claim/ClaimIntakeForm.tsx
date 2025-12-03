@@ -97,9 +97,65 @@ export const ClaimIntakeForm = () => {
     }
   };
 
-  const handlePolicyDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePolicyDocumentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPolicyDocument(e.target.files[0]);
+      const file = e.target.files[0];
+      setPolicyDocument(file);
+
+      // Auto-upload and extract details
+      try {
+        toast({
+          title: "Processing Policy",
+          description: "Extracting vehicle details from your policy...",
+        });
+
+        const fileName = `policy-${Date.now()}-${file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from('claim-files')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('claim-files')
+          .getPublicUrl(fileName);
+
+        const { data, error } = await supabase.functions.invoke('extract-policy-details', {
+          body: { policyUrl: publicUrl }
+        });
+
+        if (error) throw error;
+
+        if (data?.extractedData) {
+          const extracted = data.extractedData;
+          setFormData(prev => ({
+            ...prev,
+            policy_number: extracted.policy_number || prev.policy_number,
+            vehicle_make: extracted.vehicle_make || prev.vehicle_make,
+            vehicle_model: extracted.vehicle_model || prev.vehicle_model,
+            vehicle_year: extracted.vehicle_year?.toString() || prev.vehicle_year,
+            vehicle_vin: extracted.vehicle_vin || prev.vehicle_vin,
+            vehicle_license_plate: extracted.vehicle_license_plate || prev.vehicle_license_plate,
+            vehicle_ownership_status: extracted.vehicle_ownership_status || prev.vehicle_ownership_status,
+          }));
+
+          if (extracted.policy_status === 'active') {
+            setPolicyStatus('active');
+          }
+
+          toast({
+            title: "Details Extracted",
+            description: "We've pre-filled the vehicle details from your policy. Please review them.",
+          });
+        }
+      } catch (error) {
+        console.error('Extraction error:', error);
+        toast({
+          title: "Extraction Failed",
+          description: "Could not extract details. Please enter them manually.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

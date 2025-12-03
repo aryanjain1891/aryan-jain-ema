@@ -24,7 +24,7 @@ serve(async (req) => {
     const messages = [
       {
         role: 'system',
-         content: `You are an expert AUTO INSURANCE claims adjuster with computer vision capabilities analyzing vehicle damage photos for initial assessment.
+        content: `You are an expert AUTO INSURANCE claims adjuster with computer vision capabilities analyzing vehicle damage photos for initial assessment.
 
 CRITICAL VALIDATION REQUIREMENTS:
 1. **Image Authenticity Check**: Verify these are REAL photographs of actual vehicle damage, not:
@@ -48,15 +48,15 @@ Your task:
 3. Provide initial severity assessment (low, medium, high, critical, invalid_images)
 4. Generate intelligent follow-up questions including REQUIRED vehicle and policy details
 
-MANDATORY QUESTIONS (ALWAYS ask these):
-- Vehicle make, model, and year
-- Vehicle Identification Number (VIN) - last 8 digits minimum
-- License plate number and state
-- Vehicle ownership status (owned outright, leased, financed)
-- Current odometer reading
-- Date of vehicle purchase or lease start
-- Policy coverage details: deductible amount, coverage limits, comprehensive/collision coverage
-- Is the policyholder the vehicle owner?
+MANDATORY QUESTIONS (Ask ONLY if information is missing or conflicting):
+- Vehicle make, model, and year (if not provided)
+- Vehicle Identification Number (VIN) (if not provided)
+- License plate number and state (if not provided)
+- Vehicle ownership status (if not provided)
+- Current odometer reading (if not provided)
+- Date of vehicle purchase or lease start (if not provided)
+- Policy coverage details (if not provided)
+- Is the policyholder the vehicle owner? (if unclear)
 
 ADDITIONAL QUESTIONS based on damage analysis:
 - Safety-related (airbag deployment, injuries, drivability)
@@ -147,7 +147,7 @@ Please assess this claim and provide your analysis.`
 
     const data = await response.json();
     const assessment = JSON.parse(data.choices[0].message.content);
-    
+
     console.log('AI Assessment completed:', assessment);
 
     return new Response(JSON.stringify({ assessment }), {
@@ -155,8 +155,8 @@ Please assess this claim and provide your analysis.`
     });
   } catch (error) {
     console.error('Error in assess-claim function:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
+    return new Response(JSON.stringify({
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
