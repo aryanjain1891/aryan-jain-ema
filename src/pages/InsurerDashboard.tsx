@@ -94,7 +94,8 @@ export default function InsurerDashboard() {
     const { data, error } = await supabase
       .from('claim_questions')
       .select('*')
-      .eq('claim_id', claimId);
+      .eq('claim_id', claimId)
+      .order('asked_at', { ascending: true });
 
     if (!error && data) {
       setClaimQuestions(data);

@@ -322,9 +322,13 @@ export const ClaimIntakeForm = () => {
             question: q.question,
             question_type: q.question_type,
             is_required: q.is_required,
+            asked_at: new Date().toISOString(),
           }));
 
-          await supabase.from('claim_questions').insert(questions);
+          const { error: questionsError } = await supabase.from('claim_questions').insert(questions);
+          if (questionsError) {
+            console.error('Error saving questions:', questionsError);
+          }
         }
       }
 

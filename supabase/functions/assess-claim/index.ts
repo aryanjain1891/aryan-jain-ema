@@ -82,24 +82,37 @@ FOLLOW-UP QUESTION CATEGORIES - You MUST generate questions from MULTIPLE catego
 - "Has the vehicle been moved since the incident, or are these photos from the scene?"
 - "Please provide a photo showing the full vehicle so we can assess the overall damage context."
 
-**CATEGORY 5: Safety & Medical Questions** (ALWAYS ASK)
-- "Were there any passengers in your vehicle at the time of the incident?"
-- "Did anyone require medical attention, even if minor?"
-- "Is the vehicle currently drivable?"
-- "Were airbags deployed during the collision?"
+**CATEGORY 5: Safety & Medical Questions** (ALWAYS ASK AT LEAST 2)
+- "Were there any passengers in your vehicle at the time of the incident? If yes, how many?"
+- "Did anyone involved (driver, passengers, other party) require medical attention, even if minor? Please describe."
+- "Is the vehicle currently drivable, or has it been towed?"
+- "Were airbags deployed during the collision? Which ones (driver, passenger, side, curtain)?"
+- "Did you experience any injuries, however minor, such as whiplash, bruising, or soreness?"
 
-**CATEGORY 6: Timeline Questions** (ASK if timing seems relevant)
+**CATEGORY 6: Accident Details & Damage Questions** (ALWAYS ASK AT LEAST 2)
+- "At approximately what speed were you traveling when the incident occurred?"
+- "At approximately what speed was the other vehicle traveling (if applicable)?"
+- "Which specific parts of your vehicle made contact during the collision (e.g., front bumper, driver side door)?"
+- "Are there any mechanical issues with the vehicle since the incident (warning lights, unusual sounds, difficulty steering/braking)?"
+- "Describe the extent of damage you can see - is it limited to the exterior, or do you notice interior damage as well?"
+- "Has the vehicle been inspected by a mechanic since the incident? If yes, what was their assessment?"
+- "Are there any pre-existing damages on the vehicle that should not be included in this claim?"
+
+**CATEGORY 7: Timeline Questions** (ASK if timing seems relevant)
+
 - "How long after the incident were these photos taken?"
 - "Has any repair work been started on the vehicle?"
 - "When did you first notice this damage?"
 
 RULES FOR GENERATING QUESTIONS:
-1. Generate MINIMUM 4-6 follow-up questions
-2. Include questions from AT LEAST 3 different categories
+1. Generate MINIMUM 6-8 follow-up questions
+2. Include questions from AT LEAST 4 different categories
 3. ALWAYS include at least one question about vehicle/image consistency if ANY discrepancy exists
-4. ALWAYS include safety questions
-5. Make questions specific based on what you observe in the images
-6. Mark critical verification questions as required
+4. ALWAYS include at least 2 safety & medical questions (CATEGORY 5)
+5. ALWAYS include at least 2 accident details & damage questions (CATEGORY 6)
+6. Make questions specific based on what you observe in the images
+7. Mark critical verification questions as required
+8. Questions should help establish liability, damage extent, and injury status
 
 FORBIDDEN QUESTIONS (NEVER ASK):
 - Vehicle make, model, year, VIN, license plate (already collected)
