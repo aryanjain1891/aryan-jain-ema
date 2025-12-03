@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -12,13 +12,34 @@ serve(async (req) => {
     }
 
     try {
-        const { policyUrl } = await req.json();
-        console.log('Extracting details from policy:', policyUrl);
+        const { storagePath } = await req.json();
+        console.log('Extracting details from policy path:', storagePath);
 
         const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-        if (!LOVABLE_API_KEY) {
-            throw new Error('LOVABLE_API_KEY is not configured');
+        const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+        const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+            throw new Error('Missing configuration keys');
         }
+
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+        // Download file from storage
+        const { data: fileData, error: downloadError } = await supabase
+            .storage
+            .from('claim-files')
+            .download(storagePath);
+
+        if (downloadError) {
+            console.error('Storage download error:', downloadError);
+            throw new Error(`Failed to download file: ${downloadError.message}`);
+        }
+
+        // Convert to base64
+        const arrayBuffer = await fileData.arrayBuffer();
+        const base64Data = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        const mimeType = fileData.type;
 
         // Prepare content for AI extraction
         const messages = [
@@ -59,7 +80,9 @@ serve(async (req) => {
                     },
                     {
                         type: 'image_url',
-                        image_url: { url: policyUrl }
+                        image_url: {
+                            url: `data:${mimeType};base64,${base64Data}`
+                        }
                     }
                 ]
             }
