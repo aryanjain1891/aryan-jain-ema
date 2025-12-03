@@ -116,12 +116,8 @@ export const ClaimIntakeForm = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('claim-files')
-          .getPublicUrl(fileName);
-
         const { data, error } = await supabase.functions.invoke('extract-policy-details', {
-          body: { policyUrl: publicUrl }
+          body: { storagePath: fileName }
         });
 
         if (error) throw error;
