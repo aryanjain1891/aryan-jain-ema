@@ -275,9 +275,10 @@ export default function InsurerDashboard() {
             )}
 
             <Tabs defaultValue="details" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="details">Claim Details</TabsTrigger>
                 <TabsTrigger value="vehicle">Vehicle & Policy</TabsTrigger>
+                <TabsTrigger value="questions">Q&A ({claimQuestions.length})</TabsTrigger>
                 <TabsTrigger value="assessment">AI Assessment</TabsTrigger>
                 <TabsTrigger value="files">Uploaded Files</TabsTrigger>
               </TabsList>
@@ -395,6 +396,60 @@ export default function InsurerDashboard() {
                 </div>
               </TabsContent>
 
+              <TabsContent value="questions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Follow-up Questions & Answers
+                    </CardTitle>
+                    <CardDescription>
+                      {claimQuestions.length} question(s) asked during claim intake
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {claimQuestions.length === 0 ? (
+                      <p className="text-muted-foreground text-sm">No follow-up questions recorded</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {claimQuestions.map((q, idx) => (
+                          <div key={q.id} className="p-4 rounded-lg border bg-card space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {q.question_type || 'general'}
+                                  </Badge>
+                                  {q.is_required && (
+                                    <Badge variant="destructive" className="text-xs">Required</Badge>
+                                  )}
+                                </div>
+                                <p className="font-medium text-sm">{q.question}</p>
+                              </div>
+                            </div>
+                            <div className="pt-2 border-t">
+                              {q.answer ? (
+                                <div>
+                                  <p className="text-xs text-muted-foreground mb-1">Claimant's Answer:</p>
+                                  <p className="text-sm bg-muted/50 p-2 rounded">{q.answer}</p>
+                                  {q.answered_at && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Answered: {new Date(q.answered_at).toLocaleString()}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-amber-600 italic">Not answered yet</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
               <TabsContent value="assessment">
                 <Card>
                   <CardHeader>
@@ -415,6 +470,49 @@ export default function InsurerDashboard() {
                         <p className="text-sm mt-3 text-muted-foreground">{assessment.reasoning}</p>
                       )}
                     </div>
+
+                    {/* Vehicle Match Analysis */}
+                    {assessment?.vehicle_match_analysis && (
+                      <div className={`p-4 rounded-lg border ${
+                        assessment.vehicle_match_analysis.match_confidence < 0.7 
+                          ? 'border-destructive/50 bg-destructive/5' 
+                          : 'bg-card'
+                      }`}>
+                        <h4 className="font-semibold mb-3 flex items-center gap-2">
+                          <Car className="h-4 w-4" />
+                          Vehicle Match Analysis
+                          {assessment.vehicle_match_analysis.match_confidence < 0.7 && (
+                            <Badge variant="destructive" className="ml-2">Mismatch Detected</Badge>
+                          )}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Claimed Vehicle</p>
+                            <p className="font-medium">{assessment.vehicle_match_analysis.claimed_vehicle}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Observed in Photos</p>
+                            <p className="font-medium">{assessment.vehicle_match_analysis.observed_vehicle}</p>
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <p className="text-muted-foreground text-sm">Match Confidence</p>
+                          <Badge variant={assessment.vehicle_match_analysis.match_confidence >= 0.7 ? 'default' : 'destructive'}>
+                            {Math.round(assessment.vehicle_match_analysis.match_confidence * 100)}%
+                          </Badge>
+                        </div>
+                        {assessment.vehicle_match_analysis.discrepancies?.length > 0 && (
+                          <div className="mt-3">
+                            <p className="text-muted-foreground text-sm mb-1">Discrepancies Found:</p>
+                            <ul className="list-disc list-inside text-sm space-y-1 text-destructive">
+                              {assessment.vehicle_match_analysis.discrepancies.map((d: string, i: number) => (
+                                <li key={i}>{d}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Damage Assessment */}
                     {assessment?.damage_assessment && (
