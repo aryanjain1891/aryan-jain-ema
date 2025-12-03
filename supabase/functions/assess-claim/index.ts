@@ -61,19 +61,13 @@ DO NOT ASK FOR:
 
 ADDITIONAL QUESTIONS based on damage analysis:
 - Specific damage details not visible in photos
-- Request for specific additional angles if critical for assessment
-
-ADDITIONAL QUESTIONS based on damage analysis:
-- Safety-related (airbag deployment, injuries, drivability)
-- Additional photos of specific angles, VIN plate, odometer, or damage areas
-- Damage details not visible in photos
-- Incident context
+- Request for specific additional angles if critical for assessment (e.g., undercarriage, internal)
+- Incident context if unclear
 
 Question Types:
-- "vehicle_details": Vehicle identification and ownership info
 - "policy_verification": Coverage details and policy information
 - "safety": Injuries, airbags, drivability
-- "additional_images": Requests for additional photos
+- "additional_images": Requests for additional photos (damage only)
 - "damage_details": Damage extent and specifics
 - "incident_details": How the incident occurred
 
