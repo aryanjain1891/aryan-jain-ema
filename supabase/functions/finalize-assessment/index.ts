@@ -124,16 +124,28 @@ Description: ${claimData.description || 'No description provided'}
 Location: ${claimData.location || 'Not specified'}
 Policy Number: ${claimData.policy_number}
 
+CLAIMED VEHICLE DETAILS:
+Make: ${claimData.vehicle_make || 'Not provided'}
+Model: ${claimData.vehicle_model || 'Not provided'}
+Year: ${claimData.vehicle_year || 'Not provided'}
+VIN: ${claimData.vehicle_vin || 'Not provided'}
+License Plate: ${claimData.vehicle_license_plate || 'Not provided'}
+Ownership Status: ${claimData.vehicle_ownership_status || 'Not provided'}
+Odometer: ${claimData.vehicle_odometer || 'Not provided'}
+Purchase Date: ${claimData.vehicle_purchase_date || 'Not provided'}
+
 INITIAL VISUAL ASSESSMENT:
 ${JSON.stringify(initialAssessment.visible_damage_analysis, null, 2)}
 Initial Severity: ${initialAssessment.initial_severity}
+Vehicle Match Analysis: ${JSON.stringify(initialAssessment.vehicle_match_analysis || {}, null, 2)}
+Fraud Indicators: ${JSON.stringify(initialAssessment.fraud_indicators || {}, null, 2)}
 
-FOLLOW-UP ANSWERS:
-${followUpAnswers.map((qa: any) => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n\n')}
+FOLLOW-UP QUESTIONS AND ANSWERS (CRITICAL - USE THESE FOR FINAL ASSESSMENT):
+${followUpAnswers.map((qa: any) => `Q: ${qa.question}\nA: ${qa.answer || 'Not answered'}`).join('\n\n')}
 
-${additionalImageUrls && additionalImageUrls.length > 0 ? 'Additional damage photos have been provided below.' : ''}
+${additionalImageUrls && additionalImageUrls.length > 0 ? `ADDITIONAL IMAGES PROVIDED: ${additionalImageUrls.length} additional photos have been submitted and are shown below. CRITICAL: Compare these new images against the initial images to verify they show the SAME VEHICLE.` : 'No additional images provided.'}
 
-Please provide the final comprehensive assessment and routing decision.`
+Based on all the above information including the follow-up answers, provide the final comprehensive assessment and routing decision. Pay special attention to any discrepancies between claimed details and photos, and any concerning answers in the follow-up questions.`
           },
           // Add additional images if provided
           ...(additionalImageUrls && additionalImageUrls.length > 0 ? additionalImageUrls.map((url: string) => ({
