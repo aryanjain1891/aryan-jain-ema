@@ -53,11 +53,14 @@ MANDATORY QUESTIONS (Ask ONLY if information is missing or conflicting):
 - Safety status (injuries, drivability) if not mentioned
 - Policy coverage details (if not provided)
 
-DO NOT ASK FOR:
-- Vehicle make, model, year, VIN, license plate (Assume these are provided in the claim data)
-- Vehicle ownership status (Assume provided)
-- Odometer reading (Assume provided)
-- Purchase date (Assume provided)
+ABSOLUTELY FORBIDDEN QUESTIONS (NEVER ASK THESE, EVEN IF MISSING):
+- Vehicle make, model, year, VIN, license plate
+- Vehicle ownership status
+- Odometer reading
+- Purchase date
+- Any questions about the vehicle identity or history
+
+If this information appears missing, simply proceed with the assessment based on the visual evidence only. Do not attempt to gather this data.
 
 ADDITIONAL QUESTIONS based on damage analysis:
 - Specific damage details not visible in photos
@@ -111,6 +114,15 @@ Incident Date: ${claimData.incident_date}
 Description: ${claimData.description || 'No description provided'}
 Location: ${claimData.location || 'Not specified'}
 Policy Number: ${claimData.policy_number}
+
+VEHICLE DETAILS (ALREADY VERIFIED):
+Make: ${claimData.vehicle_make}
+Model: ${claimData.vehicle_model}
+Year: ${claimData.vehicle_year}
+VIN: ${claimData.vehicle_vin}
+License Plate: ${claimData.vehicle_license_plate}
+Ownership: ${claimData.vehicle_ownership_status}
+Odometer: ${claimData.vehicle_odometer}
 
 Please assess this claim and provide your analysis.`
           },
