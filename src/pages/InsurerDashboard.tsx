@@ -376,7 +376,7 @@ export default function InsurerDashboard() {
                   )}
 
                   {/* Metadata checks */}
-                  {assessment?.metadata_flags && (
+                  {assessment?.metadata_flags && assessment.metadata_flags.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-semibold">Metadata Analysis</h4>
                       <ul className="list-disc list-inside text-sm space-y-1">
