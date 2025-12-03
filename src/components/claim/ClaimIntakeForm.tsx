@@ -14,7 +14,8 @@ export const ClaimIntakeForm = () => {
   const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [policyStatus, setPolicyStatus] = useState<'active' | 'lapsed' | 'invalid' | null>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [policyStatus, setPolicyStatus] = useState<'active' | 'expired' | 'unknown' | null>(null);
   const [assessment, setAssessment] = useState<any>(null);
   const [claimNumber, setClaimNumber] = useState<string>("");
   const [claimId, setClaimId] = useState<string>("");
@@ -64,14 +65,14 @@ export const ClaimIntakeForm = () => {
           description: "Your policy is active and ready to file a claim.",
         });
       } else if (data.status === 'lapsed') {
-        setPolicyStatus('lapsed');
+        setPolicyStatus('expired');
         toast({
           title: "Policy Lapsed",
           description: "This policy is no longer active. Please contact support.",
           variant: "destructive",
         });
       } else {
-        setPolicyStatus('invalid');
+        setPolicyStatus('unknown');
         toast({
           title: "Invalid Policy",
           description: data.message || "Policy number not found.",
@@ -97,61 +98,66 @@ export const ClaimIntakeForm = () => {
     }
   };
 
-  const handlePolicyDocumentChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePolicyDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setPolicyDocument(file);
+      setPolicyDocument(e.target.files[0]);
+    }
+  };
 
-      // Auto-upload and extract details
-      try {
-        toast({
-          title: "Processing Policy",
-          description: "Extracting vehicle details from your policy...",
-        });
+  const handleExtractPolicyDetails = async () => {
+    if (!policyDocument) return;
 
-        const fileName = `policy-${Date.now()}-${file.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from('claim-files')
-          .upload(fileName, file);
+    setIsExtracting(true);
+    try {
+      toast({
+        title: "Processing Policy",
+        description: "Extracting vehicle details from your policy...",
+      });
 
-        if (uploadError) throw uploadError;
+      const fileName = `policy-${Date.now()}-${policyDocument.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('claim-files')
+        .upload(fileName, policyDocument);
 
-        const { data, error } = await supabase.functions.invoke('extract-policy-details', {
-          body: { storagePath: fileName }
-        });
+      if (uploadError) throw uploadError;
 
-        if (error) throw error;
+      const { data, error } = await supabase.functions.invoke('extract-policy-details', {
+        body: { storagePath: fileName }
+      });
 
-        if (data?.extractedData) {
-          const extracted = data.extractedData;
-          setFormData(prev => ({
-            ...prev,
-            policy_number: extracted.policy_number || prev.policy_number,
-            vehicle_make: extracted.vehicle_make || prev.vehicle_make,
-            vehicle_model: extracted.vehicle_model || prev.vehicle_model,
-            vehicle_year: extracted.vehicle_year?.toString() || prev.vehicle_year,
-            vehicle_vin: extracted.vehicle_vin || prev.vehicle_vin,
-            vehicle_license_plate: extracted.vehicle_license_plate || prev.vehicle_license_plate,
-            vehicle_ownership_status: extracted.vehicle_ownership_status || prev.vehicle_ownership_status,
-          }));
+      if (error) throw error;
 
-          if (extracted.policy_status === 'active') {
-            setPolicyStatus('active');
-          }
+      if (data?.extractedData) {
+        const extracted = data.extractedData;
+        setFormData(prev => ({
+          ...prev,
+          policy_number: extracted.policy_number || prev.policy_number,
+          vehicle_make: extracted.vehicle_make || prev.vehicle_make,
+          vehicle_model: extracted.vehicle_model || prev.vehicle_model,
+          vehicle_year: extracted.vehicle_year?.toString() || prev.vehicle_year,
+          vehicle_vin: extracted.vehicle_vin || prev.vehicle_vin,
+          vehicle_license_plate: extracted.vehicle_license_plate || prev.vehicle_license_plate,
+          vehicle_ownership_status: extracted.vehicle_ownership_status || prev.vehicle_ownership_status,
+        }));
 
-          toast({
-            title: "Details Extracted",
-            description: "We've pre-filled the vehicle details from your policy. Please review them.",
-          });
+        if (extracted.policy_status === 'active') {
+          setPolicyStatus('active');
         }
-      } catch (error) {
-        console.error('Extraction error:', error);
+
         toast({
-          title: "Extraction Failed",
-          description: "Could not extract details. Please enter them manually.",
-          variant: "destructive",
+          title: "Details Extracted",
+          description: "We've pre-filled the vehicle details from your policy. Please review them.",
         });
       }
+    } catch (error) {
+      console.error('Extraction error:', error);
+      toast({
+        title: "Extraction Failed",
+        description: "Could not extract details. Please enter them manually.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExtracting(false);
     }
   };
 
@@ -410,9 +416,9 @@ export const ClaimIntakeForm = () => {
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Checking</>
                   ) : policyStatus === 'active' ? (
                     <><CheckCircle className="mr-2 h-4 w-4" /> Validated</>
-                  ) : policyStatus === 'lapsed' ? (
+                  ) : policyStatus === 'expired' ? (
                     <><AlertCircle className="mr-2 h-4 w-4" /> Lapsed</>
-                  ) : policyStatus === 'invalid' ? (
+                  ) : policyStatus === 'unknown' ? (
                     <><AlertCircle className="mr-2 h-4 w-4" /> Invalid</>
                   ) : (
                     'Validate'
@@ -427,25 +433,39 @@ export const ClaimIntakeForm = () => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="policy_document">Insurance Policy Document *</Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-4 hover:border-accent transition-colors">
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={handlePolicyDocumentChange}
-                  className="hidden"
-                  id="policy-upload"
-                />
-                <label htmlFor="policy-upload" className="cursor-pointer flex items-center gap-3">
-                  <FileText className="h-8 w-8 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {policyDocument ? policyDocument.name : "Upload your policy document"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">PDF, JPG, or PNG</p>
-                  </div>
-                </label>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="policy-document">Upload Policy Document (Optional)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="policy-document"
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handlePolicyDocumentChange}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleExtractPolicyDetails}
+                    disabled={!policyDocument || isExtracting}
+                    variant="secondary"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <Upload className="mr-2 h-4 w-4 animate-spin" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload & Extract
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Upload your policy document to auto-fill vehicle details.
+                </p>
               </div>
             </div>
           </div>
