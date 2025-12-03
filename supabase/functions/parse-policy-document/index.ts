@@ -20,6 +20,55 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Download the document
+    const fileResponse = await fetch(documentUrl);
+    if (!fileResponse.ok) {
+      throw new Error(`Failed to download document: ${fileResponse.status}`);
+    }
+
+    const contentType = fileResponse.headers.get('content-type') || '';
+    const fileBuffer = await fileResponse.arrayBuffer();
+    const base64Data = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+
+    console.log('Document downloaded, content-type:', contentType, 'size:', fileBuffer.byteLength);
+
+    // Determine the mime type for the AI
+    let mimeType = 'image/jpeg';
+    if (contentType.includes('pdf')) {
+      mimeType = 'application/pdf';
+    } else if (contentType.includes('png')) {
+      mimeType = 'image/png';
+    } else if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+      mimeType = 'image/jpeg';
+    }
+
+    // Build the message content based on file type
+    const userContent: any[] = [
+      {
+        type: 'text',
+        text: 'Please extract vehicle and policy information from this insurance document.'
+      }
+    ];
+
+    // For PDFs, use inline_data with base64
+    if (mimeType === 'application/pdf') {
+      userContent.push({
+        type: 'file',
+        file: {
+          mime_type: mimeType,
+          data: base64Data
+        }
+      });
+    } else {
+      // For images, use inline base64
+      userContent.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:${mimeType};base64,${base64Data}`
+        }
+      });
+    }
+
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -59,16 +108,7 @@ Response format:
           },
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: 'Please extract vehicle and policy information from this insurance document.'
-              },
-              {
-                type: 'image_url',
-                image_url: { url: documentUrl }
-              }
-            ]
+            content: userContent
           }
         ],
         response_format: { type: 'json_object' }
