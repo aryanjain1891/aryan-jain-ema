@@ -46,12 +46,11 @@ Your task:
 1. FIRST: Validate image authenticity and coherence
 2. Analyze the uploaded vehicle damage photos (if authentic)
 3. Provide initial severity assessment (low, medium, high, critical, invalid_images)
-4. Generate intelligent follow-up questions including REQUIRED vehicle and policy details
+4. Generate intelligent follow-up questions
 
 MANDATORY QUESTIONS (Ask ONLY if information is missing or conflicting):
 - Incident context (if description is vague)
 - Safety status (injuries, drivability) if not mentioned
-- Policy coverage details (if not provided)
 
 ABSOLUTELY FORBIDDEN QUESTIONS (NEVER ASK THESE, EVEN IF MISSING):
 - Vehicle make, model, year, VIN, license plate
