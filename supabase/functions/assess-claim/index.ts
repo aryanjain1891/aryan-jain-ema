@@ -75,8 +75,15 @@ Question Types:
 Respond in JSON format with:
 {
   "initial_severity": "low|medium|high|critical|invalid_images",
+  "confidence_score": 0.0-1.0,
+  "fraud_indicators": {
+    "has_red_flags": true/false,
+    "verification_status": "verified|suspicious|fraudulent|insufficient_data",
+    "concerns": ["specific fraud concerns if any"]
+  },
   "image_authenticity": {
     "appears_authentic": true/false,
+    "confidence": 0.0-1.0,
     "concerns": ["specific red flags about image authenticity"],
     "validation_notes": "detailed assessment of image quality and authenticity"
   },

@@ -3,13 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  FileText, 
-  Image as ImageIcon, 
-  Car, 
+import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  FileText,
+  Image as ImageIcon,
+  Car,
   Shield,
   AlertCircle,
   Eye,
@@ -112,14 +112,31 @@ export default function InsurerDashboard() {
 
   const getSeverityBadge = (severity: string) => {
     switch (severity) {
-      case 'low': return { color: 'bg-emerald-500', label: 'Low' };
-      case 'medium': return { color: 'bg-amber-500', label: 'Medium' };
-      case 'high': return { color: 'bg-orange-500', label: 'High' };
-      case 'critical': return { color: 'bg-red-500', label: 'Critical' };
+      case 'low': return { color: 'bg-emerald-500', label: 'Low Severity' };
+      case 'medium': return { color: 'bg-amber-500', label: 'Medium Severity' };
+      case 'high': return { color: 'bg-orange-500', label: 'High Severity' };
+      case 'critical': return { color: 'bg-red-500', label: 'Critical Severity' };
       case 'fraudulent': return { color: 'bg-red-600', label: 'Fraudulent' };
       case 'invalid_images': return { color: 'bg-red-600', label: 'Invalid Images' };
-      default: return { color: 'bg-gray-500', label: severity || 'Pending' };
+      default: return { color: 'bg-gray-500', label: severity || 'Pending Assessment' };
     }
+  };
+
+  const getLegitimacyBadge = (assessment: any) => {
+    if (!assessment) return null;
+
+    const hasFraudFlags = assessment.fraud_indicators?.has_red_flags;
+    const isAuthentic = assessment.image_authenticity?.appears_authentic;
+
+    if (hasFraudFlags || isAuthentic === false) {
+      return { color: 'bg-red-600', label: 'Potential Fraud', icon: AlertTriangle };
+    }
+
+    if (isAuthentic === true && !hasFraudFlags) {
+      return { color: 'bg-emerald-500', label: 'Legitimate Claim', icon: CheckCircle };
+    }
+
+    return { color: 'bg-gray-500', label: 'Verification Pending', icon: Clock };
   };
 
   if (selectedClaim) {
@@ -147,6 +164,18 @@ export default function InsurerDashboard() {
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
+                    {(() => {
+                      const legitimacy = getLegitimacyBadge(assessment);
+                      if (legitimacy) {
+                        const Icon = legitimacy.icon;
+                        return (
+                          <Badge className={`${legitimacy.color} text-white flex items-center gap-1`}>
+                            <Icon className="h-3 w-3" />
+                            {legitimacy.label}
+                          </Badge>
+                        );
+                      }
+                    })()}
                     <Badge className={`${severity.color} text-white`}>{severity.label}</Badge>
                     <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
                   </div>
@@ -324,9 +353,9 @@ export default function InsurerDashboard() {
                       {selectedClaim.policy_document_url && (
                         <div>
                           <p className="text-sm text-muted-foreground mb-2">Policy Document</p>
-                          <a 
-                            href={selectedClaim.policy_document_url} 
-                            target="_blank" 
+                          <a
+                            href={selectedClaim.policy_document_url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
                           >
@@ -547,12 +576,12 @@ export default function InsurerDashboard() {
             {claims.map((claim) => {
               const routing = getRoutingBadge(claim.routing_decision);
               const severity = getSeverityBadge(claim.severity_level);
-              const hasFraudFlags = claim.ai_assessment?.fraud_indicators?.has_red_flags || 
-                                   claim.ai_assessment?.image_authenticity?.appears_authentic === false;
+              const hasFraudFlags = claim.ai_assessment?.fraud_indicators?.has_red_flags ||
+                claim.ai_assessment?.image_authenticity?.appears_authentic === false;
 
               return (
-                <Card 
-                  key={claim.id} 
+                <Card
+                  key={claim.id}
                   className={`cursor-pointer hover:border-primary transition-colors ${hasFraudFlags ? 'border-destructive/50' : ''}`}
                   onClick={() => handleViewClaim(claim)}
                 >
@@ -578,6 +607,16 @@ export default function InsurerDashboard() {
                         <Badge variant="outline" className={getStatusColor(claim.status)}>
                           {claim.status}
                         </Badge>
+                        {(() => {
+                          const legitimacy = getLegitimacyBadge(claim.ai_assessment);
+                          if (legitimacy) {
+                            return (
+                              <Badge className={`${legitimacy.color} text-white`}>
+                                {legitimacy.label}
+                              </Badge>
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
                     <div className="mt-3 flex items-center gap-6 text-sm text-muted-foreground">

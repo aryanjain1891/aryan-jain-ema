@@ -248,6 +248,7 @@ export const ClaimIntakeForm = () => {
           .from('claims')
           .update({
             severity_level: assessmentData.assessment.initial_severity,
+            confidence_score: assessmentData.assessment.confidence_score,
             ai_assessment: assessmentData.assessment,
           })
           .eq('id', claim.id);
@@ -334,7 +335,7 @@ export const ClaimIntakeForm = () => {
           {/* Policy Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Policy Information</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="policy_number">Policy Number *</Label>
               <div className="flex gap-2">
@@ -400,7 +401,7 @@ export const ClaimIntakeForm = () => {
           {/* Vehicle Details Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Vehicle Details</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="vehicle_make">Make *</Label>
@@ -506,7 +507,7 @@ export const ClaimIntakeForm = () => {
           {/* Incident Details Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Incident Details</h3>
-            
+
             <div className="space-y-2">
               <Label htmlFor="incident_type">Incident Type *</Label>
               <Select
@@ -570,7 +571,7 @@ export const ClaimIntakeForm = () => {
           {/* Damage Photos Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold border-b pb-2">Vehicle Damage Photos</h3>
-            
+
             <div className="space-y-2">
               <Label>Upload Photos of All Visible Damage *</Label>
               <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer">
