@@ -1,13 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
-import { encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper to convert ArrayBuffer to Base64 without stack overflow
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
 serve(async (req) => {
+    // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders });
     }
@@ -21,7 +32,8 @@ serve(async (req) => {
         const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
         if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-            throw new Error('Missing configuration keys');
+            console.error('Missing configuration keys');
+            throw new Error('Server configuration error');
         }
 
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -39,7 +51,7 @@ serve(async (req) => {
 
         // Convert to base64 safely
         const arrayBuffer = await fileData.arrayBuffer();
-        const base64Data = encode(new Uint8Array(arrayBuffer));
+        const base64Data = arrayBufferToBase64(arrayBuffer);
         const mimeType = fileData.type;
 
         // Prepare content for AI extraction
@@ -106,7 +118,7 @@ serve(async (req) => {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('AI API error:', response.status, errorText);
-            throw new Error(`AI API error: ${response.status} - ${errorText}`);
+            throw new Error(`AI API error: ${response.status}`);
         }
 
         const data = await response.json();
