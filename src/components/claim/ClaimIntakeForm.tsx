@@ -153,7 +153,7 @@ export const ClaimIntakeForm = () => {
       console.error('Extraction error:', error);
       toast({
         title: "Extraction Failed",
-        description: "Could not extract details. Please enter them manually.",
+        description: error instanceof Error ? error.message : "Could not extract details. Please enter them manually.",
         variant: "destructive",
       });
     } finally {
