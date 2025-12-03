@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,7 +29,7 @@ serve(async (req) => {
 
     const contentType = fileResponse.headers.get('content-type') || '';
     const fileBuffer = await fileResponse.arrayBuffer();
-    const base64Data = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
+    const base64Data = base64Encode(fileBuffer);
 
     console.log('Document downloaded, content-type:', contentType, 'size:', fileBuffer.byteLength);
 
