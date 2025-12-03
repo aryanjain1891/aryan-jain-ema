@@ -1,18 +1,28 @@
 import { ClaimIntakeForm } from "@/components/claim/ClaimIntakeForm";
 import { Shield, FileText, Brain } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
 const Index = () => {
   return <div className="min-h-screen bg-gradient-to-br from-background via-secondary to-background">
       {/* Header */}
       <header className="border-b border-border/50 bg-background/80 backdrop-blur-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Shield className="h-6 w-6 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                <Shield className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">EmaVe</h1>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">EmaVe</h1>
-              
-            </div>
+            <Link to="/insurer">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                Insurer Portal
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
