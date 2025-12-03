@@ -935,27 +935,22 @@ export default function InsurerDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {hasFraudFlags && (
+                        {/* Show consolidated fraud badge OR legitimacy badge - not both */}
+                        {hasFraudFlags ? (
                           <Badge variant="destructive" className="flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />
-                            Fraud Flag
+                            Fraud Investigation
                           </Badge>
+                        ) : (
+                          <>
+                            {/* Only show severity if not fraud-related */}
+                            <Badge className={`${severity.color} text-white`}>{severity.label}</Badge>
+                            <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
+                          </>
                         )}
-                        <Badge className={`${severity.color} text-white`}>{severity.label}</Badge>
-                        <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
                         <Badge variant="outline" className={getStatusColor(claim.status)}>
                           {claim.status}
                         </Badge>
-                        {(() => {
-                          const legitimacy = getLegitimacyBadge(claim.ai_assessment);
-                          if (legitimacy) {
-                            return (
-                              <Badge className={`${legitimacy.color} text-white`}>
-                                {legitimacy.label}
-                              </Badge>
-                            );
-                          }
-                        })()}
                       </div>
                     </div>
                     <div className="mt-3 flex items-center gap-6 text-sm text-muted-foreground">
