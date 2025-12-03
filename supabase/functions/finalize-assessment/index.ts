@@ -104,6 +104,15 @@ Respond in JSON format with:
     "is_drivable": true/false,
     "total_loss_risk": "none|low|medium|high"
   },
+  "follow_up_analysis": [
+    {
+      "question": "the question asked",
+      "answer": "the claimant's answer",
+      "assessment": "your professional assessment of this answer - what it tells you, any red flags or concerns, how it impacts the claim",
+      "credibility": "credible|questionable|suspicious|evasive",
+      "impact_on_claim": "positive|neutral|negative|critical_concern"
+    }
+  ],
   "recommendations": {
     "immediate_actions": ["actions"],
     "required_documentation": ["documents"],

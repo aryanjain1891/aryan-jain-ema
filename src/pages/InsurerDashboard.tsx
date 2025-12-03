@@ -413,38 +413,95 @@ export default function InsurerDashboard() {
                       <p className="text-muted-foreground text-sm">No follow-up questions recorded</p>
                     ) : (
                       <div className="space-y-4">
-                        {claimQuestions.map((q, idx) => (
-                          <div key={q.id} className="p-4 rounded-lg border bg-card space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="outline" className="text-xs">
-                                    {q.question_type || 'general'}
-                                  </Badge>
-                                  {q.is_required && (
-                                    <Badge variant="destructive" className="text-xs">Required</Badge>
-                                  )}
+                        {claimQuestions.map((q, idx) => {
+                          // Find matching analysis from AI assessment
+                          const qaAnalysis = assessment?.follow_up_analysis?.find(
+                            (a: any) => a.question === q.question || a.answer === q.answer
+                          );
+                          
+                          const getCredibilityBadge = (credibility: string) => {
+                            switch (credibility) {
+                              case 'credible': return { color: 'bg-emerald-500', label: 'Credible' };
+                              case 'questionable': return { color: 'bg-amber-500', label: 'Questionable' };
+                              case 'suspicious': return { color: 'bg-orange-500', label: 'Suspicious' };
+                              case 'evasive': return { color: 'bg-red-500', label: 'Evasive' };
+                              default: return { color: 'bg-gray-500', label: credibility || 'Unknown' };
+                            }
+                          };
+                          
+                          const getImpactBadge = (impact: string) => {
+                            switch (impact) {
+                              case 'positive': return { color: 'bg-emerald-500', label: 'Positive Impact' };
+                              case 'neutral': return { color: 'bg-gray-500', label: 'Neutral' };
+                              case 'negative': return { color: 'bg-orange-500', label: 'Negative Impact' };
+                              case 'critical_concern': return { color: 'bg-red-600', label: 'Critical Concern' };
+                              default: return { color: 'bg-gray-500', label: impact || 'Unknown' };
+                            }
+                          };
+                          
+                          return (
+                            <div key={q.id} className={`p-4 rounded-lg border space-y-3 ${
+                              qaAnalysis?.impact_on_claim === 'critical_concern' 
+                                ? 'border-destructive/50 bg-destructive/5' 
+                                : qaAnalysis?.credibility === 'suspicious' || qaAnalysis?.credibility === 'evasive'
+                                  ? 'border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20'
+                                  : 'bg-card'
+                            }`}>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {q.question_type || 'general'}
+                                    </Badge>
+                                    {q.is_required && (
+                                      <Badge variant="destructive" className="text-xs">Required</Badge>
+                                    )}
+                                  </div>
+                                  <p className="font-medium text-sm">{q.question}</p>
                                 </div>
-                                <p className="font-medium text-sm">{q.question}</p>
                               </div>
-                            </div>
-                            <div className="pt-2 border-t">
-                              {q.answer ? (
-                                <div>
-                                  <p className="text-xs text-muted-foreground mb-1">Claimant's Answer:</p>
-                                  <p className="text-sm bg-muted/50 p-2 rounded">{q.answer}</p>
-                                  {q.answered_at && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Answered: {new Date(q.answered_at).toLocaleString()}
-                                    </p>
-                                  )}
+                              
+                              <div className="pt-2 border-t">
+                                {q.answer ? (
+                                  <div>
+                                    <p className="text-xs text-muted-foreground mb-1">Claimant's Answer:</p>
+                                    <p className="text-sm bg-muted/50 p-2 rounded">{q.answer}</p>
+                                    {q.answered_at && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Answered: {new Date(q.answered_at).toLocaleString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-amber-600 italic">Not answered yet</p>
+                                )}
+                              </div>
+                              
+                              {/* AI Analysis of this answer */}
+                              {qaAnalysis && (
+                                <div className="pt-3 border-t mt-3 space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <Shield className="h-4 w-4 text-primary" />
+                                    <span className="text-xs font-semibold text-primary">AI Assessment</span>
+                                    {qaAnalysis.credibility && (
+                                      <Badge className={`${getCredibilityBadge(qaAnalysis.credibility).color} text-white text-xs`}>
+                                        {getCredibilityBadge(qaAnalysis.credibility).label}
+                                      </Badge>
+                                    )}
+                                    {qaAnalysis.impact_on_claim && (
+                                      <Badge className={`${getImpactBadge(qaAnalysis.impact_on_claim).color} text-white text-xs`}>
+                                        {getImpactBadge(qaAnalysis.impact_on_claim).label}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
+                                    {qaAnalysis.assessment}
+                                  </p>
                                 </div>
-                              ) : (
-                                <p className="text-sm text-amber-600 italic">Not answered yet</p>
                               )}
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
