@@ -315,15 +315,37 @@ export const ClaimIntakeForm = () => {
           })
           .eq('id', claim.id);
 
-        // Save follow-up questions
+        // Save follow-up questions with explicit ordering (additional_images always last)
         if (assessmentData.assessment.follow_up_questions) {
-          const questions = assessmentData.assessment.follow_up_questions.map((q: any) => ({
+          const baseTime = new Date();
+          
+          // Separate regular questions from additional_images
+          const regularQuestions = assessmentData.assessment.follow_up_questions.filter(
+            (q: any) => q.question_type !== 'additional_images'
+          );
+          const additionalImagesQuestions = assessmentData.assessment.follow_up_questions.filter(
+            (q: any) => q.question_type === 'additional_images'
+          );
+          
+          // Map regular questions first with sequential timestamps
+          const questions = regularQuestions.map((q: any, index: number) => ({
             claim_id: claim.id,
             question: q.question,
             question_type: q.question_type,
             is_required: q.is_required,
-            asked_at: new Date().toISOString(),
+            asked_at: new Date(baseTime.getTime() + index * 1000).toISOString(),
           }));
+          
+          // Add additional_images questions at the end
+          additionalImagesQuestions.forEach((q: any, index: number) => {
+            questions.push({
+              claim_id: claim.id,
+              question: q.question,
+              question_type: q.question_type,
+              is_required: q.is_required,
+              asked_at: new Date(baseTime.getTime() + (regularQuestions.length + index + 100) * 1000).toISOString(),
+            });
+          });
 
           const { error: questionsError } = await supabase.from('claim_questions').insert(questions);
           if (questionsError) {

@@ -463,14 +463,33 @@ export default function InsurerDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Routing Decision */}
-                    <div className="p-4 rounded-lg border bg-card">
-                      <h4 className="font-semibold mb-2">Routing Decision</h4>
-                      <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
-                      {assessment?.reasoning && (
-                        <p className="text-sm mt-3 text-muted-foreground">{assessment.reasoning}</p>
-                      )}
+                    {/* Key Decision Summary */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 rounded-lg border bg-card">
+                        <p className="text-sm text-muted-foreground mb-1">Routing Decision</p>
+                        <Badge className={`${routing.color} text-white`}>{routing.label}</Badge>
+                      </div>
+                      <div className="p-4 rounded-lg border bg-card">
+                        <p className="text-sm text-muted-foreground mb-1">Estimated Cost</p>
+                        <p className="font-bold text-lg text-primary">
+                          {assessment?.damage_assessment?.estimated_cost_range || 'Pending'}
+                        </p>
+                      </div>
+                      <div className="p-4 rounded-lg border bg-card">
+                        <p className="text-sm text-muted-foreground mb-1">Estimated Timeline</p>
+                        <p className="font-semibold">
+                          {assessment?.recommendations?.estimated_timeline || 'TBD'}
+                        </p>
+                      </div>
                     </div>
+
+                    {/* Reasoning */}
+                    {assessment?.reasoning && (
+                      <div className="p-4 rounded-lg border bg-muted/30">
+                        <h4 className="font-semibold mb-2">Assessment Reasoning</h4>
+                        <p className="text-sm text-muted-foreground">{assessment.reasoning}</p>
+                      </div>
+                    )}
 
                     {/* Vehicle Match Analysis */}
                     {assessment?.vehicle_match_analysis && (
@@ -583,16 +602,20 @@ export default function InsurerDashboard() {
                       </div>
                     )}
 
-                    {/* Recommendations */}
+                    {/* Next Steps & Recommendations */}
                     {assessment?.recommendations && (
-                      <div className="space-y-3">
-                        <h4 className="font-semibold">Recommendations</h4>
+                      <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-4">
+                        <h4 className="font-semibold text-lg flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                          Next Steps & Recommendations
+                        </h4>
+                        
                         {assessment.recommendations.immediate_actions?.length > 0 && (
                           <div>
-                            <p className="text-sm text-muted-foreground mb-2">Immediate Actions</p>
-                            <ul className="space-y-1">
+                            <p className="text-sm font-medium mb-2">Immediate Actions Required:</p>
+                            <ul className="space-y-2">
                               {assessment.recommendations.immediate_actions.map((a: string, i: number) => (
-                                <li key={i} className="text-sm flex items-start gap-2">
+                                <li key={i} className="text-sm flex items-start gap-2 p-2 bg-background rounded">
                                   <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                                   {a}
                                 </li>
@@ -600,12 +623,31 @@ export default function InsurerDashboard() {
                             </ul>
                           </div>
                         )}
-                        {assessment.recommendations.estimated_timeline && (
+                        
+                        {assessment.recommendations.required_documentation?.length > 0 && (
                           <div>
-                            <p className="text-sm text-muted-foreground">Estimated Timeline</p>
-                            <p className="text-sm">{assessment.recommendations.estimated_timeline}</p>
+                            <p className="text-sm font-medium mb-2">Required Documentation:</p>
+                            <ul className="space-y-1">
+                              {assessment.recommendations.required_documentation.map((doc: string, i: number) => (
+                                <li key={i} className="text-sm flex items-start gap-2">
+                                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  {doc}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         )}
+                        
+                        <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Estimated Timeline</p>
+                            <p className="font-semibold">{assessment.recommendations.estimated_timeline || 'TBD'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Estimated Cost Range</p>
+                            <p className="font-semibold text-primary">{assessment?.damage_assessment?.estimated_cost_range || 'Pending'}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </CardContent>
