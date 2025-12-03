@@ -65,7 +65,6 @@ ADDITIONAL QUESTIONS based on damage analysis:
 - Incident context if unclear
 
 Question Types:
-- "policy_verification": Coverage details and policy information
 - "safety": Injuries, airbags, drivability
 - "additional_images": Requests for additional photos (damage only)
 - "damage_details": Damage extent and specifics
@@ -94,7 +93,7 @@ Respond in JSON format with:
   "follow_up_questions": [
     {
       "question": "specific question text",
-      "question_type": "vehicle_details|policy_verification|safety|additional_images|damage_details|incident_details",
+      "question_type": "safety|additional_images|damage_details|incident_details",
       "is_required": true/false,
       "reasoning": "why this question matters"
     }
