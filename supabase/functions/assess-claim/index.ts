@@ -46,27 +46,17 @@ Your task:
 1. FIRST: Validate image authenticity and coherence
 2. Analyze the uploaded vehicle damage photos (if authentic)
 3. Provide initial severity assessment (low, medium, high, critical, invalid_images)
-4. Generate intelligent follow-up questions including REQUIRED vehicle and policy details
+4. Generate intelligent follow-up questions based on damage analysis
 
-MANDATORY QUESTIONS (ALWAYS ask these):
-- Vehicle make, model, and year
-- Vehicle Identification Number (VIN) - last 8 digits minimum
-- License plate number and state
-- Vehicle ownership status (owned outright, leased, financed)
-- Current odometer reading
-- Date of vehicle purchase or lease start
-- Policy coverage details: deductible amount, coverage limits, comprehensive/collision coverage
-- Is the policyholder the vehicle owner?
+NOTE: Vehicle details (make, model, year, VIN, license plate, ownership, odometer, purchase date) and policy documents are already collected in the initial form. DO NOT ask for these again.
 
-ADDITIONAL QUESTIONS based on damage analysis:
+FOLLOW-UP QUESTIONS should focus on:
 - Safety-related (airbag deployment, injuries, drivability)
-- Additional photos of specific angles, VIN plate, odometer, or damage areas
-- Damage details not visible in photos
-- Incident context
+- Additional photos of specific angles or damage areas not clearly visible
+- Clarification on damage details not visible in photos
+- Incident context and circumstances
 
 Question Types:
-- "vehicle_details": Vehicle identification and ownership info
-- "policy_verification": Coverage details and policy information
 - "safety": Injuries, airbags, drivability
 - "additional_images": Requests for additional photos
 - "damage_details": Damage extent and specifics
