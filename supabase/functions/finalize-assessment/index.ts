@@ -148,8 +148,9 @@ Incident Date: ${claimData.incident_date}
 Description: ${claimData.description || 'No description provided'}
 Location: ${claimData.location || 'Not specified'}
 Policy Number: ${claimData.policy_number}
+Policy Document: ${claimData.policy_document_url ? 'Uploaded and verified' : 'Not provided'}
 
-CLAIMED VEHICLE DETAILS:
+VEHICLE DETAILS FROM POLICY DOCUMENT (Auto-extracted from uploaded insurance policy PDF):
 Make: ${claimData.vehicle_make || 'Not provided'}
 Model: ${claimData.vehicle_model || 'Not provided'}
 Year: ${claimData.vehicle_year || 'Not provided'}
@@ -158,6 +159,10 @@ License Plate: ${claimData.vehicle_license_plate || 'Not provided'}
 Ownership Status: ${claimData.vehicle_ownership_status || 'Not provided'}
 Odometer: ${claimData.vehicle_odometer || 'Not provided'}
 Purchase Date: ${claimData.vehicle_purchase_date || 'Not provided'}
+
+IMPORTANT: The above vehicle details were extracted from the claimant's uploaded insurance policy document. 
+Cross-reference these policy-extracted details against what you observe in the submitted photos.
+Any mismatch between policy details and photos is a CRITICAL fraud indicator.
 
 INITIAL VISUAL ASSESSMENT:
 ${JSON.stringify(initialAssessment.visible_damage_analysis, null, 2)}
