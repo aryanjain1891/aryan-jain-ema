@@ -403,7 +403,7 @@ export default function InsurerDashboard() {
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="details">Claim Details</TabsTrigger>
                 <TabsTrigger value="vehicle">Vehicle & Policy</TabsTrigger>
-                <TabsTrigger value="questions">Q&A ({claimQuestions.length})</TabsTrigger>
+                <TabsTrigger value="questions">Q&A</TabsTrigger>
                 <TabsTrigger value="assessment">AI Assessment</TabsTrigger>
                 <TabsTrigger value="files">Uploaded Files</TabsTrigger>
               </TabsList>
@@ -562,34 +562,24 @@ export default function InsurerDashboard() {
 
                         return (
                           <div className="space-y-4">
-                            {/* Credibility Score */}
-                            {credibilityScore !== undefined && (
-                              <div className="flex items-center gap-3 p-3 rounded-lg bg-card border">
-                                <div className={`text-2xl font-bold ${credibilityScore >= 0.7 ? 'text-emerald-600' : credibilityScore >= 0.4 ? 'text-amber-600' : 'text-destructive'}`}>
+                            {/* Credibility Score & Overall Impression */}
+                            <div className="flex items-start gap-4 p-4 rounded-lg bg-card border">
+                              {credibilityScore !== undefined && (
+                                <div className={`text-3xl font-bold flex-shrink-0 ${credibilityScore >= 0.7 ? 'text-emerald-600' : credibilityScore >= 0.4 ? 'text-amber-600' : 'text-destructive'}`}>
                                   {Math.round(credibilityScore * 100)}%
                                 </div>
-                                <div>
-                                  <div className="text-sm font-medium">Q&A Credibility Score</div>
-                                  <div className="text-xs text-muted-foreground">Based on response analysis</div>
-                                </div>
+                              )}
+                              <div className="flex-1">
+                                <div className="text-sm font-medium mb-1">Credibility Score</div>
+                                {overallImpression && (
+                                  <p className="text-sm text-muted-foreground">{overallImpression}</p>
+                                )}
                               </div>
-                            )}
-
-                            {/* Overall Impression */}
-                            {overallImpression && (
-                              <div className="p-3 rounded-lg border bg-primary/5">
-                                <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                                  <Shield className="h-4 w-4 text-primary" />
-                                  Overall Assessment
-                                </h4>
-                                <p className="text-sm text-muted-foreground">{overallImpression}</p>
-                              </div>
-                            )}
+                            </div>
 
                             {/* Key Insights */}
                             {keyTakeaways.length > 0 && (
                               <div className="space-y-2">
-                                <h4 className="font-semibold text-sm">Key Insights</h4>
                                 {keyTakeaways.map((takeaway: any, i: number) => (
                                   <div key={i} className={`p-3 rounded-lg border ${getTypeStyle(takeaway.type)}`}>
                                     <div className="flex items-start gap-2">
