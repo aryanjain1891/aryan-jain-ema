@@ -200,34 +200,7 @@ Based on all the above information including the follow-up answers, provide the 
     }
 
     const data = await response.json();
-    let content = data.choices[0].message.content;
-    
-    // Clean up common JSON issues from AI response
-    // Remove markdown code blocks if present
-    content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    // Trim whitespace
-    content = content.trim();
-    
-    let finalAssessment;
-    try {
-      finalAssessment = JSON.parse(content);
-    } catch (parseError) {
-      console.error('JSON parse error, attempting to fix:', parseError);
-      console.error('Raw content:', content.substring(0, 500));
-      
-      // Try to extract JSON from the content
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          finalAssessment = JSON.parse(jsonMatch[0]);
-        } catch (e) {
-          console.error('Failed to parse extracted JSON:', e);
-          throw new Error(`Expected ',' or '}' after property value in JSON at position 6013 (line 97 column 255)`);
-        }
-      } else {
-        throw new Error('Could not extract valid JSON from AI response');
-      }
-    }
+    const finalAssessment = JSON.parse(data.choices[0].message.content);
 
     console.log('Final assessment completed:', finalAssessment);
 
