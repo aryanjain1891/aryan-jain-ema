@@ -522,7 +522,7 @@ export default function InsurerDashboard() {
               </TabsContent>
 
               <TabsContent value="questions">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
                   {/* Key Takeaways Summary */}
                   <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="pb-3">
