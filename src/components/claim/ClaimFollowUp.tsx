@@ -93,8 +93,8 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
   const isLastStep = currentStep === totalSteps - 1;
   const isFirstStep = currentStep === 0;
 
-  const handleAnswerChange = (questionId: string, value: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
+  const handleAnswerChange = (originalIndex: number, value: string) => {
+    setAnswers(prev => ({ ...prev, [originalIndex]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,14 +143,23 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
         }
       }
 
-      // Update answers in claim_questions table
+      // Update answers in claim_questions table - filter out additional_images questions
       if (assessment.follow_up_questions) {
-        for (let idx = 0; idx < assessment.follow_up_questions.length; idx++) {
-          const q = assessment.follow_up_questions[idx];
-          if (answers[idx]) {
+        const regularQuestions = assessment.follow_up_questions.filter(
+          (q: any) => q.question_type !== 'additional_images'
+        );
+        
+        for (let idx = 0; idx < regularQuestions.length; idx++) {
+          const q = regularQuestions[idx];
+          // Find the original index by looking up in the full array
+          const originalIdx = assessment.follow_up_questions.findIndex(
+            (fq: any) => fq.question === q.question
+          );
+          
+          if (answers[originalIdx] !== undefined && answers[originalIdx] !== '') {
             await supabase.from('claim_questions')
               .update({ 
-                answer: answers[idx],
+                answer: answers[originalIdx],
                 answered_at: new Date().toISOString()
               })
               .eq('claim_id', claimId)
@@ -159,13 +168,21 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
         }
       }
 
-      // Prepare questions with answers
-      const questionsWithAnswers = assessment.follow_up_questions?.map((q: any, idx: number) => ({
-        question: q.question,
-        answer: answers[idx] || '',
-        question_type: q.question_type,
-        is_required: q.is_required
-      })) || [];
+      // Prepare questions with answers - filter out additional_images and map answers correctly
+      const questionsWithAnswers = assessment.follow_up_questions
+        ?.filter((q: any) => q.question_type !== 'additional_images')
+        ?.map((q: any, _: number, arr: any[]) => {
+          // Find the original index in the full array
+          const originalIdx = assessment.follow_up_questions.findIndex(
+            (fq: any) => fq.question === q.question
+          );
+          return {
+            question: q.question,
+            answer: answers[originalIdx] || '',
+            question_type: q.question_type,
+            is_required: q.is_required
+          };
+        }) || [];
 
       // Call finalize-assessment edge function
       toast.info("Processing your claim...");
@@ -248,19 +265,21 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
       </Button>
 
       <Card className="border-2">
-        <CardHeader>
-          <CardTitle>Additional Information Needed</CardTitle>
-          <CardDescription>
-            Claim #{claimNumber} - Step {currentStep + 1} of {totalSteps}
-          </CardDescription>
-          <div className="pt-4">
+        <CardHeader className="space-y-4">
+          <div>
+            <CardTitle>Additional Information Needed</CardTitle>
+            <CardDescription>
+              Claim #{claimNumber} — Step {currentStep + 1} of {totalSteps}
+            </CardDescription>
+          </div>
+          <div>
             <Progress value={progressValue} className="h-2" />
-            <div className="flex justify-between mt-2">
+            <div className="flex flex-wrap gap-2 mt-3">
               {categories.map((cat, idx) => (
                 <button
                   key={cat.id}
                   onClick={() => setCurrentStep(idx)}
-                  className={`text-xs px-2 py-1 rounded transition-colors ${
+                  className={`text-xs px-3 py-1.5 rounded-full transition-colors font-medium ${
                     idx === currentStep 
                       ? 'bg-primary text-primary-foreground' 
                       : idx < currentStep 
@@ -274,7 +293,7 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
               ))}
               <button
                 onClick={() => setCurrentStep(totalSteps - 1)}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
+                className={`text-xs px-3 py-1.5 rounded-full transition-colors font-medium ${
                   currentStep === totalSteps - 1 
                     ? 'bg-primary text-primary-foreground' 
                     : currentStep > categories.length - 1
@@ -282,6 +301,7 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
                       : 'bg-muted text-muted-foreground'
                 }`}
               >
+                {currentStep > categories.length - 1 && <Check className="inline h-3 w-3 mr-1" />}
                 Photos
               </button>
             </div>
@@ -309,7 +329,7 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
                     placeholder="Your answer..."
                     rows={3}
                     value={answers[q.originalIndex] || ''}
-                    onChange={(e) => handleAnswerChange(q.originalIndex.toString(), e.target.value)}
+                    onChange={(e) => handleAnswerChange(q.originalIndex, e.target.value)}
                     className="resize-none"
                   />
                 </div>
