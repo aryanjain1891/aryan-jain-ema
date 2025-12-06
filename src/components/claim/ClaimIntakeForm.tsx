@@ -10,6 +10,24 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ClaimFollowUp } from "./ClaimFollowUp";
 
+interface ValidationErrors {
+  policy_number?: string;
+  incident_type?: string;
+  incident_date?: string;
+  description?: string;
+  location?: string;
+  vehicle_make?: string;
+  vehicle_model?: string;
+  vehicle_year?: string;
+  vehicle_vin?: string;
+  vehicle_license_plate?: string;
+  vehicle_ownership_status?: string;
+  vehicle_odometer?: string;
+  damageFiles?: string;
+  policyDocument?: string;
+  policyStatus?: string;
+}
+
 export const ClaimIntakeForm = () => {
   const { toast } = useToast();
   const [isValidating, setIsValidating] = useState(false);
@@ -18,6 +36,8 @@ export const ClaimIntakeForm = () => {
   const [assessment, setAssessment] = useState<any>(null);
   const [claimNumber, setClaimNumber] = useState<string>("");
   const [claimId, setClaimId] = useState<string>("");
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
   const [formData, setFormData] = useState({
     policy_number: "",
@@ -169,31 +189,71 @@ export const ClaimIntakeForm = () => {
     setDamageFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const validateForm = (): ValidationErrors => {
+    const errors: ValidationErrors = {};
+    
+    if (policyStatus !== 'active') {
+      errors.policyStatus = "Please validate an active policy before submitting";
+    }
+    if (!formData.policy_number.trim()) {
+      errors.policy_number = "Policy number is required";
+    }
+    if (!formData.incident_type) {
+      errors.incident_type = "Please select an incident type";
+    }
+    if (!formData.incident_date) {
+      errors.incident_date = "Incident date is required";
+    }
+    if (!formData.description.trim()) {
+      errors.description = "Please describe the incident";
+    }
+    if (!formData.location.trim()) {
+      errors.location = "Location is required";
+    }
+    if (!formData.vehicle_make.trim()) {
+      errors.vehicle_make = "Vehicle make is required";
+    }
+    if (!formData.vehicle_model.trim()) {
+      errors.vehicle_model = "Vehicle model is required";
+    }
+    if (!formData.vehicle_year.trim()) {
+      errors.vehicle_year = "Vehicle year is required";
+    }
+    if (!formData.vehicle_vin.trim()) {
+      errors.vehicle_vin = "VIN is required";
+    } else if (formData.vehicle_vin.length !== 17) {
+      errors.vehicle_vin = "VIN must be exactly 17 characters";
+    }
+    if (!formData.vehicle_license_plate.trim()) {
+      errors.vehicle_license_plate = "License plate is required";
+    }
+    if (!formData.vehicle_ownership_status) {
+      errors.vehicle_ownership_status = "Please select ownership status";
+    }
+    if (!formData.vehicle_odometer.trim()) {
+      errors.vehicle_odometer = "Odometer reading is required";
+    }
+    if (damageFiles.length === 0) {
+      errors.damageFiles = "Please upload at least one photo of the vehicle damage";
+    }
+    if (!policyDocument) {
+      errors.policyDocument = "Please upload your insurance policy document";
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (policyStatus !== 'active') {
+    setHasAttemptedSubmit(true);
+    
+    const errors = validateForm();
+    setValidationErrors(errors);
+    
+    if (Object.keys(errors).length > 0) {
       toast({
-        title: "Cannot Submit",
-        description: "Please validate an active policy before submitting.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (damageFiles.length === 0) {
-      toast({
-        title: "Photos Required",
-        description: "Please upload at least one photo of the vehicle damage.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!policyDocument) {
-      toast({
-        title: "Policy Document Required",
-        description: "Please upload your insurance policy document.",
+        title: "Missing Information",
+        description: "Please fill in all required fields highlighted below.",
         variant: "destructive",
       });
       return;
@@ -433,6 +493,7 @@ export const ClaimIntakeForm = () => {
                   value={formData.policy_number}
                   onChange={(e) => setFormData({ ...formData, policy_number: e.target.value })}
                   disabled={policyStatus === 'active'}
+                  className={hasAttemptedSubmit && validationErrors.policy_number ? "border-destructive" : ""}
                   required
                 />
                 <Button
@@ -455,17 +516,23 @@ export const ClaimIntakeForm = () => {
                   )}
                 </Button>
               </div>
+              {hasAttemptedSubmit && validationErrors.policyStatus && (
+                <p className="text-sm text-destructive">{validationErrors.policyStatus}</p>
+              )}
+              {hasAttemptedSubmit && validationErrors.policy_number && (
+                <p className="text-sm text-destructive">{validationErrors.policy_number}</p>
+              )}
               {policyStatus === 'active' && (
                 <p className="text-sm text-emerald-600">✓ Policy is active and eligible for claims</p>
               )}
-              {!policyStatus && (
+              {!policyStatus && !hasAttemptedSubmit && (
                 <p className="text-xs text-muted-foreground mt-1">Tip: Use <code className="bg-muted px-1 rounded">POL-123456</code> for testing.</p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="policy_document">Insurance Policy Document *</Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-4 hover:border-accent transition-colors">
+              <div className={`border-2 border-dashed rounded-lg p-4 hover:border-accent transition-colors ${hasAttemptedSubmit && validationErrors.policyDocument ? "border-destructive" : "border-border"}`}>
                 <input
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
@@ -483,6 +550,9 @@ export const ClaimIntakeForm = () => {
                   </div>
                 </label>
               </div>
+              {hasAttemptedSubmit && validationErrors.policyDocument && (
+                <p className="text-sm text-destructive">{validationErrors.policyDocument}</p>
+              )}
               {policyDocument && (
                 <Button
                   type="button"
@@ -514,8 +584,12 @@ export const ClaimIntakeForm = () => {
                   placeholder="e.g., Toyota"
                   value={formData.vehicle_make}
                   onChange={(e) => setFormData({ ...formData, vehicle_make: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_make ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_make && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_make}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -525,8 +599,12 @@ export const ClaimIntakeForm = () => {
                   placeholder="e.g., Camry"
                   value={formData.vehicle_model}
                   onChange={(e) => setFormData({ ...formData, vehicle_model: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_model ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_model && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_model}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -539,8 +617,12 @@ export const ClaimIntakeForm = () => {
                   max={new Date().getFullYear() + 1}
                   value={formData.vehicle_year}
                   onChange={(e) => setFormData({ ...formData, vehicle_year: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_year ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_year && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_year}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -551,8 +633,12 @@ export const ClaimIntakeForm = () => {
                   maxLength={17}
                   value={formData.vehicle_vin}
                   onChange={(e) => setFormData({ ...formData, vehicle_vin: e.target.value.toUpperCase() })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_vin ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_vin && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_vin}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -562,8 +648,12 @@ export const ClaimIntakeForm = () => {
                   placeholder="e.g., ABC1234"
                   value={formData.vehicle_license_plate}
                   onChange={(e) => setFormData({ ...formData, vehicle_license_plate: e.target.value.toUpperCase() })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_license_plate ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_license_plate && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_license_plate}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -573,7 +663,7 @@ export const ClaimIntakeForm = () => {
                   onValueChange={(value) => setFormData({ ...formData, vehicle_ownership_status: value })}
                   required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className={hasAttemptedSubmit && validationErrors.vehicle_ownership_status ? "border-destructive" : ""}>
                     <SelectValue placeholder="Select ownership status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -582,6 +672,9 @@ export const ClaimIntakeForm = () => {
                     <SelectItem value="leased">Leased</SelectItem>
                   </SelectContent>
                 </Select>
+                {hasAttemptedSubmit && validationErrors.vehicle_ownership_status && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_ownership_status}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -592,8 +685,12 @@ export const ClaimIntakeForm = () => {
                   placeholder="e.g., 45000"
                   value={formData.vehicle_odometer}
                   onChange={(e) => setFormData({ ...formData, vehicle_odometer: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.vehicle_odometer ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.vehicle_odometer && (
+                  <p className="text-sm text-destructive">{validationErrors.vehicle_odometer}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -619,7 +716,7 @@ export const ClaimIntakeForm = () => {
                 onValueChange={(value) => setFormData({ ...formData, incident_type: value })}
                 required
               >
-                <SelectTrigger>
+                <SelectTrigger className={hasAttemptedSubmit && validationErrors.incident_type ? "border-destructive" : ""}>
                   <SelectValue placeholder="Select incident type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -633,6 +730,9 @@ export const ClaimIntakeForm = () => {
                   <SelectItem value="fire">Fire</SelectItem>
                 </SelectContent>
               </Select>
+              {hasAttemptedSubmit && validationErrors.incident_type && (
+                <p className="text-sm text-destructive">{validationErrors.incident_type}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -643,8 +743,12 @@ export const ClaimIntakeForm = () => {
                   type="datetime-local"
                   value={formData.incident_date}
                   onChange={(e) => setFormData({ ...formData, incident_date: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.incident_date ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.incident_date && (
+                  <p className="text-sm text-destructive">{validationErrors.incident_date}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -654,8 +758,12 @@ export const ClaimIntakeForm = () => {
                   placeholder="City, State or Address"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  className={hasAttemptedSubmit && validationErrors.location ? "border-destructive" : ""}
                   required
                 />
+                {hasAttemptedSubmit && validationErrors.location && (
+                  <p className="text-sm text-destructive">{validationErrors.location}</p>
+                )}
               </div>
             </div>
 
@@ -666,9 +774,13 @@ export const ClaimIntakeForm = () => {
                 placeholder="Describe what happened in detail (what occurred, other vehicles involved, any injuries, weather conditions, etc.)..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className={hasAttemptedSubmit && validationErrors.description ? "border-destructive" : ""}
                 rows={4}
                 required
               />
+              {hasAttemptedSubmit && validationErrors.description && (
+                <p className="text-sm text-destructive">{validationErrors.description}</p>
+              )}
             </div>
           </div>
 
@@ -678,7 +790,7 @@ export const ClaimIntakeForm = () => {
 
             <div className="space-y-2">
               <Label>Upload Photos of All Visible Damage *</Label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer">
+              <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-accent transition-colors cursor-pointer ${hasAttemptedSubmit && validationErrors.damageFiles ? "border-destructive" : "border-border"}`}>
                 <input
                   type="file"
                   multiple
@@ -697,6 +809,9 @@ export const ClaimIntakeForm = () => {
                   </p>
                 </label>
               </div>
+              {hasAttemptedSubmit && validationErrors.damageFiles && (
+                <p className="text-sm text-destructive">{validationErrors.damageFiles}</p>
+              )}
               {damageFiles.length > 0 && (
                 <div className="mt-4 space-y-2">
                   {damageFiles.map((file, index) => (
@@ -720,7 +835,7 @@ export const ClaimIntakeForm = () => {
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || policyStatus !== 'active' || damageFiles.length === 0 || !policyDocument}
+            disabled={isSubmitting}
             size="lg"
           >
             {isSubmitting ? (
