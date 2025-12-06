@@ -126,15 +126,24 @@ Respond in JSON format with:
     "is_drivable": true/false,
     "total_loss_risk": "none|low|medium|high"
   },
-  "follow_up_analysis": [
-    {
-      "question": "the question asked",
-      "answer": "the claimant's answer",
-      "assessment": "your professional assessment of this answer - what it tells you, any red flags or concerns, how it impacts the claim",
-      "credibility": "credible|questionable|suspicious|evasive",
-      "impact_on_claim": "positive|neutral|negative|critical_concern"
-    }
-  ],
+  "qa_summary": {
+    "key_takeaways": [
+      {
+        "insight": "A synthesized insight derived from analyzing multiple responses holistically - NOT just repeating a single answer. E.g., 'Claimant provides consistent timeline across all answers, corroborating the incident occurred on the stated date'",
+        "type": "positive|concern|critical|neutral",
+        "supporting_evidence": "Brief reference to which answers support this insight"
+      }
+    ],
+    "gaps_and_concerns": [
+      {
+        "issue": "A specific gap, inconsistency, or concern identified from analyzing the Q&A holistically. E.g., 'Timeline discrepancy: claimant stated incident was 3 hours ago but form indicates 5 days ago'",
+        "severity": "minor|moderate|critical",
+        "recommendation": "What action should be taken to address this gap"
+      }
+    ],
+    "credibility_score": 0.0-1.0,
+    "overall_impression": "A 2-3 sentence professional summary synthesizing what the Q&A responses reveal about the claim's legitimacy and the claimant's credibility. Capture nuances and provide a holistic assessment."
+  },
   "recommendations": {
     "immediate_actions": ["actions"],
     "required_documentation": ["documents"],
