@@ -185,6 +185,16 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
         is_required: true
       }));
 
+      // Get primary image URLs from claim_files table
+      const { data: claimFiles } = await supabase
+        .from('claim_files')
+        .select('file_url')
+        .eq('claim_id', claimId);
+      
+      const primaryImageUrls = claimFiles
+        ?.filter(f => !additionalImageUrls.includes(f.file_url))
+        .map(f => f.file_url) || [];
+
       // Call finalize-assessment edge function
       toast.info("Processing your claim...");
 
@@ -193,7 +203,8 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
           claimData,
           initialAssessment: assessment,
           followUpAnswers: questionsWithAnswers,
-          additionalImageUrls
+          additionalImageUrls,
+          primaryImageUrls
         }
       });
 
@@ -326,14 +337,13 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
               })}
               <button
                 onClick={() => handleStepClick(totalSteps - 1)}
-                className={`text-xs px-3 py-1.5 rounded-full transition-colors font-medium flex items-center gap-1 ${
+                className={`text-xs px-3 py-1.5 rounded-full transition-colors font-medium ${
                   currentStep === totalSteps - 1 
                     ? 'bg-primary text-primary-foreground' 
-                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                    : 'bg-muted text-muted-foreground'
                 }`}
               >
-                <Check className="h-3 w-3" />
-                Photos
+                Photos (Optional)
               </button>
             </div>
           </div>
