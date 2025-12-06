@@ -129,21 +129,27 @@ Respond in JSON format with:
   "qa_summary": {
     "key_takeaways": [
       {
-        "insight": "A synthesized insight derived from analyzing multiple responses holistically - NOT just repeating a single answer. E.g., 'Claimant provides consistent timeline across all answers, corroborating the incident occurred on the stated date'",
-        "type": "positive|concern|critical|neutral",
+        "insight": "ONLY POSITIVE OR NEUTRAL observations that support credibility. E.g., 'Claimant provides consistent timeline and cooperates fully with all questions'",
+        "type": "positive|neutral",
         "supporting_evidence": "Brief reference to which answers support this insight"
       }
     ],
     "gaps_and_concerns": [
       {
-        "issue": "A specific gap, inconsistency, or concern identified from analyzing the Q&A holistically. E.g., 'Timeline discrepancy: claimant stated incident was 3 hours ago but form indicates 5 days ago'",
+        "issue": "ONLY CONCERNS, RED FLAGS, GAPS, OR ISSUES - never duplicate positive items from key_takeaways. E.g., 'Timeline discrepancy: claimant stated incident was 3 hours ago but form indicates 5 days ago'",
         "severity": "minor|moderate|critical",
         "recommendation": "What action should be taken to address this gap"
       }
     ],
     "credibility_score": 0.0-1.0,
-    "overall_impression": "A 2-3 sentence professional summary synthesizing what the Q&A responses reveal about the claim's legitimacy and the claimant's credibility. Capture nuances and provide a holistic assessment."
+    "overall_impression": "A 2-3 sentence professional summary synthesizing what the Q&A responses reveal about the claim's legitimacy."
   },
+  
+  CRITICAL RULE FOR qa_summary:
+  - key_takeaways: ONLY positive/neutral findings (cooperation, consistency, verified info)
+  - gaps_and_concerns: ONLY problems, red flags, missing info, inconsistencies
+  - NEVER put the same issue in both sections
+  - If something is a concern, put it ONLY in gaps_and_concerns, NOT in key_takeaways
   "recommendations": {
     "immediate_actions": ["actions"],
     "required_documentation": ["documents"],
