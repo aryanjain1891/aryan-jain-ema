@@ -513,114 +513,281 @@ export default function InsurerDashboard() {
               </TabsContent>
 
               <TabsContent value="questions">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Follow-up Questions & Answers
-                    </CardTitle>
-                    <CardDescription>
-                      {claimQuestions.length} question(s) asked during claim intake
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {claimQuestions.length === 0 ? (
-                      <p className="text-muted-foreground text-sm">No follow-up questions recorded</p>
-                    ) : (
-                      <div className="space-y-4">
-                        {claimQuestions.map((q, idx) => {
-                          // Find matching analysis from AI assessment by question text only
-                          const qaAnalysis = assessment?.follow_up_analysis?.find(
-                            (a: any) => a.question === q.question
-                          );
-                          
-                          const getCredibilityBadge = (credibility: string) => {
-                            switch (credibility) {
-                              case 'credible': return { color: 'bg-emerald-500', label: 'Credible' };
-                              case 'questionable': return { color: 'bg-amber-500', label: 'Questionable' };
-                              case 'suspicious': return { color: 'bg-orange-500', label: 'Suspicious' };
-                              case 'evasive': return { color: 'bg-red-500', label: 'Evasive' };
-                              default: return { color: 'bg-gray-500', label: credibility || 'Unknown' };
-                            }
-                          };
-                          
-                          const getImpactBadge = (impact: string) => {
-                            switch (impact) {
-                              case 'positive': return { color: 'bg-emerald-500', label: 'Positive Impact' };
-                              case 'neutral': return { color: 'bg-gray-500', label: 'Neutral' };
-                              case 'negative': return { color: 'bg-orange-500', label: 'Negative Impact' };
-                              case 'critical_concern': return { color: 'bg-red-600', label: 'Critical Concern' };
-                              default: return { color: 'bg-gray-500', label: impact || 'Unknown' };
-                            }
-                          };
-                          
-                          return (
-                            <div key={q.id} className={`p-4 rounded-lg border space-y-3 ${
-                              qaAnalysis?.impact_on_claim === 'critical_concern' 
-                                ? 'border-destructive/50 bg-destructive/5'
-                                : qaAnalysis?.credibility === 'suspicious' || qaAnalysis?.credibility === 'evasive'
-                                  ? 'border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20'
-                                  : 'bg-card'
-                            }`}>
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Badge variant="outline" className="text-xs">
-                                      {q.question_type || 'general'}
-                                    </Badge>
-                                    {q.is_required && (
-                                      <Badge variant="destructive" className="text-xs">Required</Badge>
-                                    )}
-                                  </div>
-                                  <p className="font-medium text-sm">{q.question}</p>
-                                </div>
+                <div className="space-y-6">
+                  {/* Key Takeaways Summary */}
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Zap className="h-5 w-5 text-primary" />
+                        Key Takeaways
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        const analysis = assessment?.follow_up_analysis || [];
+                        const credibleCount = analysis.filter((a: any) => a.credibility === 'credible').length;
+                        const concernCount = analysis.filter((a: any) => 
+                          a.credibility === 'suspicious' || a.credibility === 'evasive' || a.impact_on_claim === 'critical_concern'
+                        ).length;
+                        const positiveCount = analysis.filter((a: any) => a.impact_on_claim === 'positive').length;
+                        
+                        // Extract key findings
+                        const criticalConcerns = analysis.filter((a: any) => 
+                          a.impact_on_claim === 'critical_concern' || a.credibility === 'suspicious' || a.credibility === 'evasive'
+                        );
+                        const positiveFindings = analysis.filter((a: any) => 
+                          a.credibility === 'credible' && a.impact_on_claim === 'positive'
+                        );
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Stats Row */}
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div className="p-3 rounded-lg bg-card border">
+                                <div className="text-2xl font-bold text-emerald-600">{credibleCount}</div>
+                                <div className="text-xs text-muted-foreground">Credible Responses</div>
                               </div>
-                              
-                              <div className="pt-2 border-t">
-                                {q.answer ? (
+                              <div className="p-3 rounded-lg bg-card border">
+                                <div className="text-2xl font-bold text-amber-600">{concernCount}</div>
+                                <div className="text-xs text-muted-foreground">Concerns Flagged</div>
+                              </div>
+                              <div className="p-3 rounded-lg bg-card border">
+                                <div className="text-2xl font-bold text-primary">{positiveCount}</div>
+                                <div className="text-xs text-muted-foreground">Positive Indicators</div>
+                              </div>
+                            </div>
+
+                            {/* Critical Concerns */}
+                            {criticalConcerns.length > 0 && (
+                              <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5">
+                                <h4 className="font-semibold text-sm text-destructive mb-2 flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4" />
+                                  Critical Concerns ({criticalConcerns.length})
+                                </h4>
+                                <ul className="text-sm space-y-1">
+                                  {criticalConcerns.slice(0, 3).map((c: any, i: number) => (
+                                    <li key={i} className="text-muted-foreground">• {c.assessment}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Positive Findings */}
+                            {positiveFindings.length > 0 && (
+                              <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+                                <h4 className="font-semibold text-sm text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-2">
+                                  <CheckCircle className="h-4 w-4" />
+                                  Positive Findings ({positiveFindings.length})
+                                </h4>
+                                <ul className="text-sm space-y-1">
+                                  {positiveFindings.slice(0, 3).map((p: any, i: number) => (
+                                    <li key={i} className="text-muted-foreground">• {p.assessment}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {analysis.length === 0 && (
+                              <p className="text-sm text-muted-foreground">No analysis available yet. Run assessment to generate insights.</p>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+
+                  {/* Gaps in Submission */}
+                  <Card className="border-amber-500/20 bg-amber-50/30 dark:bg-amber-950/10">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <AlertCircle className="h-5 w-5 text-amber-600" />
+                        Gaps in Submission
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {(() => {
+                        const unansweredQuestions = claimQuestions.filter(q => !q.answer || q.answer.trim() === '');
+                        const vagueAnswers = assessment?.follow_up_analysis?.filter((a: any) => 
+                          a.credibility === 'questionable' || a.assessment?.toLowerCase().includes('vague') || a.assessment?.toLowerCase().includes('unclear')
+                        ) || [];
+                        const missingInfo = assessment?.missing_information || [];
+
+                        const hasGaps = unansweredQuestions.length > 0 || vagueAnswers.length > 0 || missingInfo.length > 0;
+
+                        return (
+                          <div className="space-y-4">
+                            {!hasGaps ? (
+                              <div className="flex items-center gap-2 text-emerald-600">
+                                <CheckCircle className="h-4 w-4" />
+                                <span className="text-sm font-medium">All required information provided</span>
+                              </div>
+                            ) : (
+                              <>
+                                {unansweredQuestions.length > 0 && (
                                   <div>
-                                    <p className="text-xs text-muted-foreground mb-1">Claimant's Answer:</p>
-                                    <p className="text-sm bg-muted/50 p-2 rounded">{q.answer}</p>
-                                    {q.answered_at && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        Answered: {new Date(q.answered_at).toLocaleString()}
-                                      </p>
-                                    )}
+                                    <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400 mb-2">
+                                      Unanswered Questions ({unansweredQuestions.length})
+                                    </h4>
+                                    <ul className="text-sm space-y-1">
+                                      {unansweredQuestions.map((q: any, i: number) => (
+                                        <li key={i} className="text-muted-foreground flex items-start gap-2">
+                                          <span className="text-amber-500">○</span>
+                                          <span>{q.question}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
                                   </div>
-                                ) : (
-                                  <p className="text-sm text-amber-600 italic">Not answered yet</p>
+                                )}
+
+                                {vagueAnswers.length > 0 && (
+                                  <div>
+                                    <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400 mb-2">
+                                      Incomplete/Vague Responses ({vagueAnswers.length})
+                                    </h4>
+                                    <ul className="text-sm space-y-1">
+                                      {vagueAnswers.map((a: any, i: number) => (
+                                        <li key={i} className="text-muted-foreground flex items-start gap-2">
+                                          <span className="text-amber-500">○</span>
+                                          <span>{a.question}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+
+                                {missingInfo.length > 0 && (
+                                  <div>
+                                    <h4 className="font-semibold text-sm text-amber-700 dark:text-amber-400 mb-2">
+                                      Additional Information Needed
+                                    </h4>
+                                    <ul className="text-sm space-y-1">
+                                      {missingInfo.map((info: string, i: number) => (
+                                        <li key={i} className="text-muted-foreground flex items-start gap-2">
+                                          <span className="text-amber-500">○</span>
+                                          <span>{info}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </CardContent>
+                  </Card>
+
+                  {/* Detailed Q&A (Collapsible) */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        Detailed Q&A Review
+                      </CardTitle>
+                      <CardDescription>
+                        {claimQuestions.length} question(s) asked during claim intake
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {claimQuestions.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">No follow-up questions recorded</p>
+                      ) : (
+                        <div className="space-y-4">
+                          {claimQuestions.map((q, idx) => {
+                            // Find matching analysis from AI assessment by question text only
+                            const qaAnalysis = assessment?.follow_up_analysis?.find(
+                              (a: any) => a.question === q.question
+                            );
+                            
+                            const getCredibilityBadge = (credibility: string) => {
+                              switch (credibility) {
+                                case 'credible': return { color: 'bg-emerald-500', label: 'Credible' };
+                                case 'questionable': return { color: 'bg-amber-500', label: 'Questionable' };
+                                case 'suspicious': return { color: 'bg-orange-500', label: 'Suspicious' };
+                                case 'evasive': return { color: 'bg-red-500', label: 'Evasive' };
+                                default: return { color: 'bg-gray-500', label: credibility || 'Unknown' };
+                              }
+                            };
+                            
+                            const getImpactBadge = (impact: string) => {
+                              switch (impact) {
+                                case 'positive': return { color: 'bg-emerald-500', label: 'Positive Impact' };
+                                case 'neutral': return { color: 'bg-gray-500', label: 'Neutral' };
+                                case 'negative': return { color: 'bg-orange-500', label: 'Negative Impact' };
+                                case 'critical_concern': return { color: 'bg-red-600', label: 'Critical Concern' };
+                                default: return { color: 'bg-gray-500', label: impact || 'Unknown' };
+                              }
+                            };
+                            
+                            return (
+                              <div key={q.id} className={`p-4 rounded-lg border space-y-3 ${
+                                qaAnalysis?.impact_on_claim === 'critical_concern' 
+                                  ? 'border-destructive/50 bg-destructive/5'
+                                  : qaAnalysis?.credibility === 'suspicious' || qaAnalysis?.credibility === 'evasive'
+                                    ? 'border-orange-500/50 bg-orange-50/50 dark:bg-orange-950/20'
+                                    : 'bg-card'
+                              }`}>
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {q.question_type || 'general'}
+                                      </Badge>
+                                      {q.is_required && (
+                                        <Badge variant="destructive" className="text-xs">Required</Badge>
+                                      )}
+                                    </div>
+                                    <p className="font-medium text-sm">{q.question}</p>
+                                  </div>
+                                </div>
+                                
+                                <div className="pt-2 border-t">
+                                  {q.answer ? (
+                                    <div>
+                                      <p className="text-xs text-muted-foreground mb-1">Claimant's Answer:</p>
+                                      <p className="text-sm bg-muted/50 p-2 rounded">{q.answer}</p>
+                                      {q.answered_at && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Answered: {new Date(q.answered_at).toLocaleString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-amber-600 italic">Not answered yet</p>
+                                  )}
+                                </div>
+                                
+                                {/* AI Analysis of this answer */}
+                                {qaAnalysis && (
+                                  <div className="pt-3 border-t mt-3 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <Shield className="h-4 w-4 text-primary" />
+                                      <span className="text-xs font-semibold text-primary">AI Assessment</span>
+                                      {qaAnalysis.credibility && (
+                                        <Badge className={`${getCredibilityBadge(qaAnalysis.credibility).color} text-white text-xs`}>
+                                          {getCredibilityBadge(qaAnalysis.credibility).label}
+                                        </Badge>
+                                      )}
+                                      {qaAnalysis.impact_on_claim && (
+                                        <Badge className={`${getImpactBadge(qaAnalysis.impact_on_claim).color} text-white text-xs`}>
+                                          {getImpactBadge(qaAnalysis.impact_on_claim).label}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
+                                      {qaAnalysis.assessment}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
-                              
-                              {/* AI Analysis of this answer */}
-                              {qaAnalysis && (
-                                <div className="pt-3 border-t mt-3 space-y-2">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="h-4 w-4 text-primary" />
-                                    <span className="text-xs font-semibold text-primary">AI Assessment</span>
-                                    {qaAnalysis.credibility && (
-                                      <Badge className={`${getCredibilityBadge(qaAnalysis.credibility).color} text-white text-xs`}>
-                                        {getCredibilityBadge(qaAnalysis.credibility).label}
-                                      </Badge>
-                                    )}
-                                    {qaAnalysis.impact_on_claim && (
-                                      <Badge className={`${getImpactBadge(qaAnalysis.impact_on_claim).color} text-white text-xs`}>
-                                        {getImpactBadge(qaAnalysis.impact_on_claim).label}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground bg-primary/5 p-2 rounded">
-                                    {qaAnalysis.assessment}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
 
               <TabsContent value="assessment">
