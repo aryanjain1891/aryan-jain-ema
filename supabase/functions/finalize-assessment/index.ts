@@ -56,8 +56,14 @@ CRITICAL FRAUD DETECTION - Check for:
    - Coverage type matches vehicle and incident
    - Policy details align with vehicle value
    - Deductible amounts are realistic
+
+3. **Timeline Consistency** (CRITICAL):
+   - Cross-reference the INCIDENT DATE from the claim form against any time references in follow-up answers
+   - If claimant says "accident happened X hours/days ago" in answers, calculate if that matches the claimed incident date
+   - Flag ANY timeline discrepancy as a CRITICAL fraud indicator
+   - Example: If incident date is 5 days ago but answer says "3 hours ago" - this is a major red flag
    
-3. **Image & Damage Consistency**:
+4. **Image & Damage Consistency**:
    - Damage description matches photos
    - Incident description plausible with damage shown
    - CRITICAL: Check if additional photos show the SAME VEHICLE as original photos
@@ -144,11 +150,17 @@ Respond in JSON format with:
             type: 'text',
             text: `INITIAL CLAIM DATA:
 Incident Type: ${claimData.incident_type}
-Incident Date: ${claimData.incident_date}
+Incident Date: ${claimData.incident_date} (THIS IS THE OFFICIAL CLAIMED DATE - cross-reference against any timeline mentions in follow-up answers!)
 Description: ${claimData.description || 'No description provided'}
 Location: ${claimData.location || 'Not specified'}
 Policy Number: ${claimData.policy_number}
 Policy Document: ${claimData.policy_document_url ? 'Uploaded and verified' : 'Not provided'}
+
+TIMELINE VERIFICATION REQUIRED:
+- The incident date above is what the claimant officially reported
+- Check ALL follow-up answers for any time references (e.g., "happened X hours ago", "yesterday", "this morning")
+- Calculate if any mentioned timeframe contradicts the official incident date
+- Any timeline mismatch is a CRITICAL FRAUD INDICATOR
 
 VEHICLE DETAILS FROM POLICY DOCUMENT (Auto-extracted from uploaded insurance policy PDF):
 Make: ${claimData.vehicle_make || 'Not provided'}
