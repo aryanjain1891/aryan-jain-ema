@@ -191,15 +191,8 @@ export const ClaimFollowUp = ({ assessment, claimNumber, claimId, claimData, onR
         .select('file_url')
         .eq('claim_id', claimId);
       
-      // Filter out PDFs and additional images - only keep actual image files
-      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
       const primaryImageUrls = claimFiles
-        ?.filter(f => {
-          const url = f.file_url.toLowerCase();
-          const isImage = imageExtensions.some(ext => url.includes(ext));
-          const isNotAdditional = !additionalImageUrls.includes(f.file_url);
-          return isImage && isNotAdditional;
-        })
+        ?.filter(f => !additionalImageUrls.includes(f.file_url))
         .map(f => f.file_url) || [];
 
       // Call finalize-assessment edge function
