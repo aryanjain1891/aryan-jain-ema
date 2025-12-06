@@ -340,9 +340,12 @@ export default function InsurerDashboard() {
                       <h4 className="font-semibold">Image Authenticity Issues</h4>
                       <p className="text-sm">{assessment.image_authenticity.validation_notes}</p>
                       {assessment.image_authenticity.concerns?.length > 0 && (
-                        <ul className="list-disc list-inside text-sm space-y-1">
+                        <ul className="text-sm space-y-1">
                           {assessment.image_authenticity.concerns.map((c: string, i: number) => (
-                            <li key={i}>{c}</li>
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-muted-foreground mt-1.5">•</span>
+                              <span>{c}</span>
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -359,9 +362,12 @@ export default function InsurerDashboard() {
                         Status: <strong>{assessment.fraud_indicators.verification_status}</strong>
                       </p>
                       {assessment.fraud_indicators.concerns?.length > 0 && (
-                        <ul className="list-disc list-inside text-sm space-y-1">
+                        <ul className="text-sm space-y-1">
                           {assessment.fraud_indicators.concerns.map((c: string, i: number) => (
-                            <li key={i}>{c}</li>
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="text-muted-foreground mt-1.5">•</span>
+                              <span>{c}</span>
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -379,9 +385,12 @@ export default function InsurerDashboard() {
                   {assessment?.metadata_flags && assessment.metadata_flags.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-semibold">Metadata Analysis</h4>
-                      <ul className="list-disc list-inside text-sm space-y-1">
+                      <ul className="text-sm space-y-1">
                         {assessment.metadata_flags.map((flag: string, i: number) => (
-                          <li key={i}>{flag}</li>
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-muted-foreground mt-1.5">•</span>
+                            <span>{flag}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -690,11 +699,11 @@ export default function InsurerDashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {claimQuestions.length === 0 ? (
+                      {claimQuestions.filter(q => q.question_type !== 'additional_images').length === 0 ? (
                         <p className="text-muted-foreground text-sm">No follow-up questions recorded</p>
                       ) : (
                         <div className="space-y-4">
-                          {claimQuestions.map((q, idx) => {
+                          {claimQuestions.filter(q => q.question_type !== 'additional_images').map((q, idx) => {
                             // Find matching analysis from AI assessment by question text only
                             const qaAnalysis = assessment?.follow_up_analysis?.find(
                               (a: any) => a.question === q.question
@@ -863,9 +872,12 @@ export default function InsurerDashboard() {
                         {assessment.vehicle_match_analysis.discrepancies?.length > 0 && (
                           <div className="mt-3">
                             <p className="text-muted-foreground text-sm mb-1">Discrepancies Found:</p>
-                            <ul className="list-disc list-inside text-sm space-y-1 text-destructive">
+                            <ul className="text-sm space-y-1 text-destructive">
                               {assessment.vehicle_match_analysis.discrepancies.map((d: string, i: number) => (
-                                <li key={i}>{d}</li>
+                                <li key={i} className="flex items-start gap-2">
+                                  <span className="mt-1.5">•</span>
+                                  <span>{d}</span>
+                                </li>
                               ))}
                             </ul>
                           </div>
@@ -921,9 +933,12 @@ export default function InsurerDashboard() {
                         {assessment.damage_assessment.safety_concerns?.length > 0 && (
                           <div>
                             <p className="text-sm text-muted-foreground mb-2">Safety Concerns</p>
-                            <ul className="list-disc list-inside text-sm space-y-1">
+                            <ul className="text-sm space-y-1">
                               {assessment.damage_assessment.safety_concerns.map((c: string, i: number) => (
-                                <li key={i} className="text-destructive">{c}</li>
+                                <li key={i} className="text-destructive flex items-start gap-2">
+                                  <span className="mt-1.5">•</span>
+                                  <span>{c}</span>
+                                </li>
                               ))}
                             </ul>
                           </div>

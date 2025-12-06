@@ -51,7 +51,7 @@ export const ClaimIntakeForm = () => {
     vehicle_year: "",
     vehicle_vin: "MA6MF481EAH048922",
     vehicle_license_plate: "",
-    vehicle_ownership_status: "Leased",
+    vehicle_ownership_status: "",
     vehicle_odometer: "45000",
     vehicle_purchase_date: "2023-10-23",
   });
