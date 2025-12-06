@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { claimData, initialAssessment, followUpAnswers, additionalImageUrls } = await req.json();
-    console.log('Finalizing assessment with follow-up answers');
+    const { claimData, initialAssessment, followUpAnswers, additionalImageUrls, primaryImageUrls } = await req.json();
+    console.log('Finalizing assessment with follow-up answers and images');
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -152,11 +152,25 @@ Fraud Indicators: ${JSON.stringify(initialAssessment.fraud_indicators || {}, nul
 FOLLOW-UP QUESTIONS AND ANSWERS (CRITICAL - USE THESE FOR FINAL ASSESSMENT):
 ${followUpAnswers.map((qa: any) => `Q: ${qa.question}\nA: ${qa.answer || 'Not answered'}`).join('\n\n')}
 
-${additionalImageUrls && additionalImageUrls.length > 0 ? `ADDITIONAL IMAGES PROVIDED: ${additionalImageUrls.length} additional photos have been submitted and are shown below. CRITICAL: Compare these new images against the initial images to verify they show the SAME VEHICLE.` : 'No additional images provided.'}
+PRIMARY IMAGES (Original damage photos submitted with claim):
+${primaryImageUrls && primaryImageUrls.length > 0 ? `${primaryImageUrls.length} primary photos showing the initial damage - these are the ORIGINAL images submitted with the claim.` : 'No primary images provided.'}
+
+${additionalImageUrls && additionalImageUrls.length > 0 ? `ADDITIONAL IMAGES PROVIDED: ${additionalImageUrls.length} additional photos have been submitted.
+
+CRITICAL IMAGE COMPARISON:
+1. Compare the PRIMARY IMAGES (original photos) against the ADDITIONAL IMAGES (new photos)
+2. Verify ALL images show the SAME VEHICLE - check color, body style, make/model, visible features
+3. Check if the vehicle in photos matches the CLAIMED VEHICLE DETAILS (make, model, year)
+4. Flag any inconsistencies between images or between images and claimed details` : 'No additional images provided.'}
 
 Based on all the above information including the follow-up answers, provide the final comprehensive assessment and routing decision. Pay special attention to any discrepancies between claimed details and photos, and any concerning answers in the follow-up questions.`
           },
-          // Add additional images if provided
+          // Add primary images first
+          ...(primaryImageUrls && primaryImageUrls.length > 0 ? primaryImageUrls.map((url: string) => ({
+            type: 'image_url',
+            image_url: { url }
+          })) : []),
+          // Add additional images
           ...(additionalImageUrls && additionalImageUrls.length > 0 ? additionalImageUrls.map((url: string) => ({
             type: 'image_url',
             image_url: { url }
