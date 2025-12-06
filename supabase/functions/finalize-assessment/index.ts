@@ -20,6 +20,22 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
+    // Helper function to filter only valid image URLs (exclude PDFs and other non-image files)
+    const filterImageUrls = (urls: string[] | undefined): string[] => {
+      if (!urls || urls.length === 0) return [];
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+      return urls.filter(url => {
+        const lowerUrl = url.toLowerCase();
+        return imageExtensions.some(ext => lowerUrl.includes(ext));
+      });
+    };
+
+    // Filter out non-image files (like PDFs)
+    const filteredPrimaryImageUrls = filterImageUrls(primaryImageUrls);
+    const filteredAdditionalImageUrls = filterImageUrls(additionalImageUrls);
+    
+    console.log(`Primary images: ${filteredPrimaryImageUrls.length}, Additional images: ${filteredAdditionalImageUrls.length}`);
+
     // Prepare comprehensive content for final assessment
     const messages = [
       {
@@ -153,9 +169,9 @@ FOLLOW-UP QUESTIONS AND ANSWERS (CRITICAL - USE THESE FOR FINAL ASSESSMENT):
 ${followUpAnswers.map((qa: any) => `Q: ${qa.question}\nA: ${qa.answer || 'Not answered'}`).join('\n\n')}
 
 PRIMARY IMAGES (Original damage photos submitted with claim):
-${primaryImageUrls && primaryImageUrls.length > 0 ? `${primaryImageUrls.length} primary photos showing the initial damage - these are the ORIGINAL images submitted with the claim.` : 'No primary images provided.'}
+${filteredPrimaryImageUrls.length > 0 ? `${filteredPrimaryImageUrls.length} primary photos showing the initial damage - these are the ORIGINAL images submitted with the claim.` : 'No primary images provided.'}
 
-${additionalImageUrls && additionalImageUrls.length > 0 ? `ADDITIONAL IMAGES PROVIDED: ${additionalImageUrls.length} additional photos have been submitted.
+${filteredAdditionalImageUrls.length > 0 ? `ADDITIONAL IMAGES PROVIDED: ${filteredAdditionalImageUrls.length} additional photos have been submitted.
 
 CRITICAL IMAGE COMPARISON:
 1. Compare the PRIMARY IMAGES (original photos) against the ADDITIONAL IMAGES (new photos)
@@ -165,16 +181,16 @@ CRITICAL IMAGE COMPARISON:
 
 Based on all the above information including the follow-up answers, provide the final comprehensive assessment and routing decision. Pay special attention to any discrepancies between claimed details and photos, and any concerning answers in the follow-up questions.`
           },
-          // Add primary images first
-          ...(primaryImageUrls && primaryImageUrls.length > 0 ? primaryImageUrls.map((url: string) => ({
+          // Add primary images first (filtered to exclude non-image files)
+          ...(filteredPrimaryImageUrls.map((url: string) => ({
             type: 'image_url',
             image_url: { url }
-          })) : []),
-          // Add additional images
-          ...(additionalImageUrls && additionalImageUrls.length > 0 ? additionalImageUrls.map((url: string) => ({
+          }))),
+          // Add additional images (filtered to exclude non-image files)
+          ...(filteredAdditionalImageUrls.map((url: string) => ({
             type: 'image_url',
             image_url: { url }
-          })) : [])
+          })))
         ]
       }
     ];
