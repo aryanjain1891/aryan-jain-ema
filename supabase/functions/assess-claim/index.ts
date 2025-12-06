@@ -99,7 +99,6 @@ FOLLOW-UP QUESTION CATEGORIES - You MUST generate questions from MULTIPLE catego
 - "Are there any pre-existing damages on the vehicle that should not be included in this claim?"
 
 **CATEGORY 7: Timeline Questions** (ASK if timing seems relevant)
-
 - "How long after the incident were these photos taken?"
 - "Has any repair work been started on the vehicle?"
 - "When did you first notice this damage?"
@@ -111,7 +110,7 @@ RULES FOR GENERATING QUESTIONS:
 4. ALWAYS include at least 2 safety & medical questions (CATEGORY 5)
 5. ALWAYS include at least 2 accident details & damage questions (CATEGORY 6)
 6. Make questions specific based on what you observe in the images
-7. Mark critical verification questions as required
+7. ALL questions are REQUIRED - set is_required to true for every question
 8. Questions should help establish liability, damage extent, and injury status
 
 FORBIDDEN QUESTIONS (NEVER ASK):
@@ -158,7 +157,7 @@ Respond in JSON format with:
     {
       "question": "specific, detailed question text",
       "question_type": "verification|safety|additional_images|damage_details|incident_details|witness_info",
-      "is_required": true/false,
+      "is_required": true,
       "reasoning": "why this question matters for claim validation",
       "category": "which category this question falls into"
     }
