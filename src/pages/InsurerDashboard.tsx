@@ -15,9 +15,11 @@ import {
   AlertCircle,
   Eye,
   ArrowLeft,
-  RefreshCw,
-  Zap
+  Zap,
+  Download,
+  RefreshCw
 } from "lucide-react";
+import { generateClaimPDF } from "@/lib/pdfExport";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -193,6 +195,15 @@ export default function InsurerDashboard() {
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => generateClaimPDF(selectedClaim, claimQuestions)}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export PDF
+                    </Button>
                     <div className="flex gap-2">
                       {(() => {
                         const legitimacy = getLegitimacyBadge(assessment);
@@ -504,7 +515,22 @@ export default function InsurerDashboard() {
                       {(() => {
                         const qaSummary = assessment?.qa_summary;
                         const gapsAndConcerns = qaSummary?.gaps_and_concerns || [];
-                        const unansweredQuestions = claimQuestions.filter(q => !q.answer || q.answer.trim() === '');
+                        // Filter out questions about additional/optional photos from unanswered questions
+                        const unansweredQuestions = claimQuestions.filter(q => {
+                          if (!q.answer || q.answer.trim() === '') {
+                            const questionLower = q.question.toLowerCase();
+                            // Exclude questions about additional/optional photos
+                            const isOptionalPhotoQuestion = 
+                              questionLower.includes('additional photo') ||
+                              questionLower.includes('additional image') ||
+                              questionLower.includes('more photo') ||
+                              questionLower.includes('more image') ||
+                              questionLower.includes('upload additional') ||
+                              questionLower.includes('provide additional');
+                            return !isOptionalPhotoQuestion;
+                          }
+                          return false;
+                        });
 
                         const hasGaps = gapsAndConcerns.length > 0 || unansweredQuestions.length > 0;
 
