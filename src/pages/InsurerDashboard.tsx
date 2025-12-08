@@ -4,21 +4,7 @@ import { InsurerLogin } from "@/components/InsurerLogin";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  FileText,
-  Image as ImageIcon,
-  Car,
-  Shield,
-  AlertCircle,
-  Eye,
-  ArrowLeft,
-  Zap,
-  Download,
-  RefreshCw
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, FileText, Image as ImageIcon, Car, Shield, AlertCircle, Eye, ArrowLeft, Zap, Download, RefreshCw } from "lucide-react";
 import { generateClaimPDF } from "@/lib/pdfExport";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
