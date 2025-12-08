@@ -129,34 +129,47 @@ Respond in JSON format with:
   "qa_summary": {
     "key_takeaways": [
       {
-        "insight": "ONLY POSITIVE OR NEUTRAL observations that support credibility. E.g., 'Claimant provides consistent timeline and cooperates fully with all questions'",
+        "category": "eligibility_alignment|evidence_consistency|completeness",
+        "insight": "Structured insight based on category",
         "type": "positive|neutral",
-        "supporting_evidence": "Brief reference to which answers support this insight"
+        "supporting_evidence": "Brief reference to which answers/images support this insight"
       }
     ],
     "gaps_and_concerns": [
       {
-        "issue": "ONLY CONCERNS, RED FLAGS, GAPS, OR ISSUES - never duplicate positive items from key_takeaways. E.g., 'Timeline discrepancy: claimant stated incident was 3 hours ago but form indicates 5 days ago'",
+        "issue": "ONLY CONCERNS, RED FLAGS, GAPS, OR ISSUES",
         "severity": "minor|moderate|critical",
-        "recommendation": "What action should be taken to address this gap"
+        "recommendation": "What action should be taken"
       }
     ],
     "credibility_score": 0.0-1.0,
-    "overall_impression": "A 2-3 sentence professional summary synthesizing what the Q&A responses reveal about the claim's legitimacy."
+    "overall_impression": "2-3 sentence professional summary"
   },
-  
-  CRITICAL RULE FOR qa_summary:
-  - key_takeaways: ONLY positive/neutral findings (cooperation, consistency, verified info)
-  - gaps_and_concerns: ONLY problems, red flags, missing info, inconsistencies
-  - NEVER put the same issue in both sections
-  - If something is a concern, put it ONLY in gaps_and_concerns, NOT in key_takeaways
   "recommendations": {
     "immediate_actions": ["actions"],
     "required_documentation": ["documents"],
     "estimated_timeline": "X days/weeks"
   },
   "reasoning": "comprehensive explanation including fraud assessment"
-}`
+}
+
+CRITICAL RULES FOR qa_summary:
+
+KEY_TAKEAWAYS CATEGORIES (include at least one from each applicable category):
+1. eligibility_alignment: Does the event fall within policy coverage? Are any exclusions triggered? Is claimed event type consistent with policy wording?
+   Examples: "Policy covers collision damage; event description indicates collision with a stationary object" or "Third-party injury not claimed though policy supports it"
+2. evidence_consistency: Vehicle plate matches policy? Damage pattern aligns with described impact (direction, intensity, location)? Timestamp/EXIF aligns with stated date? No conflicting metadata (editing markers, stock image signals)?
+   Examples: "Vehicle plate in photos matches policy records" or "Damage pattern consistent with described rear-end collision at low speed"
+3. completeness: All mandatory data present? All required images present (front, rear, side, close-up)? Claimant provided all regulatory details (FIR, license, policy document)?
+   Examples: "All mandatory vehicle and incident data provided" or "Comprehensive photo documentation submitted from multiple angles"
+
+GAPS_AND_CONCERNS RULES:
+- ONLY problems, red flags, missing info, inconsistencies
+- NEVER put the same issue in both key_takeaways and gaps_and_concerns
+- NEVER treat "additional photos not provided" as a gap or concern - additional photos are OPTIONAL and not providing them is perfectly acceptable
+- NEVER treat optional fields as missing data
+- Only flag missing data if it's MANDATORY and truly missing from the initial claim form
+- Focus on genuine concerns: timeline inconsistencies, damage pattern mismatches, suspicious metadata, policy coverage issues`
       },
       {
         role: 'user',
@@ -209,7 +222,7 @@ CRITICAL IMAGE COMPARISON:
 1. Compare the PRIMARY IMAGES (original photos) against the ADDITIONAL IMAGES (new photos)
 2. Verify ALL images show the SAME VEHICLE - check color, body style, make/model, visible features
 3. Check if the vehicle in photos matches the CLAIMED VEHICLE DETAILS (make, model, year)
-4. Flag any inconsistencies between images or between images and claimed details` : 'No additional images provided.'}
+4. Flag any inconsistencies between images or between images and claimed details` : 'No additional images provided - this is acceptable and should NOT be flagged as a gap or concern.'}
 
 Based on all the above information including the follow-up answers, provide the final comprehensive assessment and routing decision. Pay special attention to any discrepancies between claimed details and photos, and any concerning answers in the follow-up questions.`
           },
