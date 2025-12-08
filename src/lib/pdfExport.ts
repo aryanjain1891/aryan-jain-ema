@@ -62,26 +62,35 @@ const formatSeverity = (severity: string) => {
 export const generateClaimPDF = (claim: ClaimData, questions: ClaimQuestion[]) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 20;
+  const footerMargin = 20; // Reserve space for footer
   const contentWidth = pageWidth - margin * 2;
+  const maxContentY = pageHeight - footerMargin;
   let yPos = 20;
+
+  const checkPageBreak = (requiredHeight: number) => {
+    if (yPos + requiredHeight > maxContentY) {
+      doc.addPage();
+      yPos = 20;
+    }
+  };
 
   const addText = (text: string, fontSize: number = 10, isBold: boolean = false) => {
     doc.setFontSize(fontSize);
     doc.setFont('helvetica', isBold ? 'bold' : 'normal');
     const lines = doc.splitTextToSize(text, contentWidth);
+    const lineHeight = fontSize * 0.5;
+    const textHeight = lines.length * lineHeight + 4;
     
-    // Check if we need a new page
-    if (yPos + lines.length * fontSize * 0.5 > doc.internal.pageSize.getHeight() - margin) {
-      doc.addPage();
-      yPos = 20;
-    }
+    checkPageBreak(textHeight);
     
     doc.text(lines, margin, yPos);
-    yPos += lines.length * fontSize * 0.5 + 4;
+    yPos += textHeight;
   };
 
   const addSectionHeader = (title: string) => {
+    checkPageBreak(20); // Header needs ~20px
     yPos += 5;
     doc.setFillColor(59, 130, 246);
     doc.rect(margin, yPos - 4, contentWidth, 8, 'F');
@@ -96,13 +105,17 @@ export const generateClaimPDF = (claim: ClaimData, questions: ClaimQuestion[]) =
   const addField = (label: string, value: string | number | null | undefined) => {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${label}:`, margin, yPos);
-    doc.setFont('helvetica', 'normal');
     const valueText = value?.toString() || 'N/A';
     const labelWidth = doc.getTextWidth(`${label}: `);
     const valueLines = doc.splitTextToSize(valueText, contentWidth - labelWidth - 5);
+    const fieldHeight = valueLines.length * 4 + 3;
+    
+    checkPageBreak(fieldHeight);
+    
+    doc.text(`${label}:`, margin, yPos);
+    doc.setFont('helvetica', 'normal');
     doc.text(valueLines, margin + labelWidth + 2, yPos);
-    yPos += valueLines.length * 4 + 3;
+    yPos += fieldHeight;
   };
 
   // Header
