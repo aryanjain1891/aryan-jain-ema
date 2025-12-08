@@ -304,6 +304,20 @@ export default function InsurerDashboard() {
                         )}
                       </Button>
                     )}
+                    {/* Regenerate Assessment Button for already assessed claims */}
+                    {selectedClaim.status === 'assessed' && (
+                      <Button 
+                        onClick={() => handleFinalizeAssessment(selectedClaim)}
+                        disabled={isFinalizing}
+                        variant="outline"
+                      >
+                        {isFinalizing ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Regenerating...</>
+                        ) : (
+                          <><RefreshCw className="mr-2 h-4 w-4" /> Regenerate Assessment</>
+                        )}
+                      </Button>
+                    )}
                     <div className="flex gap-2">
                       {(() => {
                         const legitimacy = getLegitimacyBadge(assessment);
