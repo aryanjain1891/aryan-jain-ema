@@ -859,7 +859,7 @@ export default function InsurerDashboard() {
             <Link to="/" className="text-sm text-muted-foreground hover:text-primary mb-2 inline-block">
               ← Back to Claim Form
             </Link>
-            <h1 className="text-3xl font-bold">Insurer Dashboard</h1>
+            <h1 className="text-3xl font-bold">Insurance Triager Dashboard</h1>
             <p className="text-muted-foreground">Review and manage submitted claims</p>
           </div>
           <Button onClick={fetchClaims} variant="outline" disabled={isLoading}>
