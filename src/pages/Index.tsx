@@ -14,7 +14,7 @@ const Index = () => {
                 <Shield className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">EmaVe</h1>
+                <h1 className="text-xl font-bold text-foreground">Insurance Triager</h1>
               </div>
             </div>
             <Link to="/insurer">
