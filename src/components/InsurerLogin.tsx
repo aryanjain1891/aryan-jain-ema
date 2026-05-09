@@ -15,7 +15,7 @@ export const InsurerLogin = ({ onLogin }: InsurerLoginProps) => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === "Ema-Insurer") {
+        if (password === "insurer-portal") {
             onLogin();
             toast({
                 title: "Login Successful",
