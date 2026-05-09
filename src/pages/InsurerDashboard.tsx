@@ -425,7 +425,7 @@ export default function InsurerDashboard() {
                         const overallImpression = qaSummary?.overall_impression;
                         
                         if (!qaSummary) {
-                          return <p className="text-sm text-muted-foreground">No analysis available yet. Run assessment to generate insights.</p>;
+                          return <p className="text-sm text-muted-foreground">No analysis available yet. The assessment is generated automatically once the claimant completes the follow-up questions.</p>;
                         }
 
                         const getTypeStyle = (type: string) => {
